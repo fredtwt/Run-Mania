@@ -20,7 +20,7 @@ const Signup = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#2E2E2E" barStyle="light-content" />
-      <Animatable.KeyboardAvoidingView style={styles.inputContainer}>
+      <KeyboardAvoidingView style={styles.inputContainer}>
         <View style={styles.input}>
           <InputBox
             placeholder="Enter Email"
@@ -44,7 +44,7 @@ const Signup = () => {
             type="outline"
             onPress={{}} />
         </View>
-      </Animatable.KeyboardAvoidingView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
