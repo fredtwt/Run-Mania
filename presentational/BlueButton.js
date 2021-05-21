@@ -21,7 +21,7 @@ const BlueButton = props => {
       }
       }
     />
-  );
+  )
 }
 
 export default BlueButton

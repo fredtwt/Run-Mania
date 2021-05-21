@@ -1,9 +1,9 @@
-import React, { useState } from "react"
+import React, { useContext, useState } from "react"
 import { StyleSheet, SafeAreaView, KeyboardAvoidingView, View, Image, Text, StatusBar } from "react-native"
 import BlueButton from "../presentational/BlueButton"
 import InputBox from "../presentational/InputBox"
 
-const Signup = () => {
+const Login = ({ navigation }) => {
   const [data, setData] = useState({
     email: "",
     password: "",
@@ -20,29 +20,36 @@ const Signup = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#2E2E2E" barStyle="light-content" />
+      <View style={styles.image}>
+        <Image source={require("../assets/logo_enhanced.png")} />
+      </View>
       <KeyboardAvoidingView style={styles.inputContainer}>
         <View style={styles.input}>
           <InputBox
-            placeholder="Enter Email"
+            placeholder="Enter email"
             label="Email:"
-            leftIcon="account" />
+            leftIcon="email" />
           <InputBox
             placeholder="Enter password"
             label="Password:"
             secureTextEntry={data.secureTextEntry ? true : false}
             onPress={updateSecureTextEntry}
             leftIcon="lock"
-            rightIcon="eye-off" />
+            rightIcon="eye-off"
+            rightIconColor="grey" />
         </View>
         <View>
           <BlueButton
-            title="Sign Up!"
+            title="Login"
             type="solid"
             onPress={{}} />
           <BlueButton
-            title="Have an account already?"
+            title="Sign up"
             type="outline"
-            onPress={{}} />
+            onPress={() => navigation.navigate("Signup")} />
+        </View>
+        <View style={styles.signupContainer}>
+          <Text style={{ color: "rgb(32, 137, 220)" }}>Forgot your password?</Text>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -80,4 +87,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default Signup 
+export default Login
