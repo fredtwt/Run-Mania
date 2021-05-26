@@ -1,20 +1,36 @@
-import React, { useContext, useState } from "react"
-import { StyleSheet, SafeAreaView, KeyboardAvoidingView, View, Image, Text, StatusBar } from "react-native"
+import React, { useState } from "react"
+import { StyleSheet, SafeAreaView, KeyboardAvoidingView, View, Image, Text, StatusBar, Keyboard } from "react-native"
+import { CommonActions } from "@react-navigation/native"
+
 import BlueButton from "../presentational/BlueButton"
 import InputBox from "../presentational/InputBox"
 
-const Login = ({ navigation }) => {
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-    secureTextEntry: true
-  })
+import * as Authentication from "../api/auth"
 
-  const updateSecureTextEntry = () => {
-    setData({
-      ...data,
-      secureTextEntry: !data.secureTextEntry
-    })
+const Login = ({ navigation }) => {
+  const [email, setEmail] = useState()
+  const [password, setPassword] = useState()
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [isLoginLoading, setIsLoginLoading] = useState(false)
+
+  const handleLogin = () => {
+    Keyboard.dismiss()
+    setIsLoginLoading(true)
+
+    Authentication.signIn(
+      { email, password },
+      (user) => navigation.dispatch(CommonActions.reset({
+        index: 0,
+        routes: [{
+          name: "Main",
+          params: { user }
+        }]
+      })),
+      (error) => {
+        setIsLoginLoading(false)
+        return alert(error) 
+      }
+    )
   }
 
   return (
@@ -28,12 +44,16 @@ const Login = ({ navigation }) => {
           <InputBox
             placeholder="Enter email"
             label="Email:"
+            value={email}
+            onChangeText={(val) => setEmail(val)}
             leftIcon="email" />
           <InputBox
             placeholder="Enter password"
             label="Password:"
-            secureTextEntry={data.secureTextEntry ? true : false}
-            onPress={updateSecureTextEntry}
+            secureTextEntry={!isPasswordVisible}
+            onPress={() => setIsPasswordVisible((state) => !state)}
+            value={password}
+            onChangeText={(val) => setPassword(val)}
             leftIcon="lock"
             rightIcon="eye-off"
             rightIconColor="grey" />
@@ -42,7 +62,9 @@ const Login = ({ navigation }) => {
           <BlueButton
             title="Login"
             type="solid"
-            onPress={{}} />
+            disabled={!email && !password}
+            loading={isLoginLoading}
+            onPress={handleLogin} />
           <BlueButton
             title="Sign up"
             type="outline"
@@ -62,6 +84,13 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignContent: "center",
     justifyContent: "center",
+    backgroundColor: "#2E2E2E"
+  },
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    color: "white",
+    alignItems: "center",
     backgroundColor: "#2E2E2E"
   },
   inputContainer: {

@@ -10,7 +10,11 @@ const BlueButton = props => {
         width: 250,
         marginBottom: 15,
       }}
+      icon={props.icon}
+      iconRight
+      disabled={props.disabled}
       containerStyle={{ margin: 5 }}
+      loading={props.loading}
       loadingProps={{ animating: true }}
       loadingStyle={{}}
       onPress={props.onPress}

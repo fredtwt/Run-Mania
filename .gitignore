@@ -1,5 +1,6 @@
 node_modules/
 .expo/
+.expo-shared/
 npm-debug.*
 *.jks
 *.p8
@@ -8,6 +9,8 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+.env
+firebaseConfig.js
 
 # macOS
 .DS_Store
