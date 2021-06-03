@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { StyleSheet, SafeAreaView, KeyboardAvoidingView, View, Image, Text, StatusBar, Keyboard } from "react-native"
+import { StyleSheet, SafeAreaView, KeyboardAvoidingView, View, Image, Text, StatusBar, Keyboard, TouchableOpacity } from "react-native"
 import { CommonActions } from "@react-navigation/native"
 
 import BlueButton from "../presentational/BlueButton"
@@ -23,12 +23,11 @@ const Login = ({ navigation }) => {
         index: 0,
         routes: [{
           name: "Main",
-          params: { user }
         }]
       })),
       (error) => {
         setIsLoginLoading(false)
-        return alert(error) 
+        return alert(error)
       }
     )
   }
@@ -71,7 +70,9 @@ const Login = ({ navigation }) => {
             onPress={() => navigation.navigate("Signup")} />
         </View>
         <View style={styles.signupContainer}>
-          <Text style={{ color: "rgb(32, 137, 220)" }}>Forgot your password?</Text>
+          <TouchableOpacity style={styles.hyperlink} onPress={() => navigation.navigate("Reset")}>
+            <Text style={{ color: "rgb(32, 137, 220)" }}>Forgot your password?</Text>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -92,6 +93,9 @@ const styles = StyleSheet.create({
     color: "white",
     alignItems: "center",
     backgroundColor: "#2E2E2E"
+  },
+  hyperlink: {
+    alignItems: "center"
   },
   inputContainer: {
     flex: 1,

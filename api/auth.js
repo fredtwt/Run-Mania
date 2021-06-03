@@ -24,6 +24,15 @@ export const createAccount = async ({ username, email, password }, onSuccess, on
   }
 }
 
+export const resetPassword = async ({email}, onSuccess, onError) => {
+  try {
+    await auth.sendPasswordResetEmail(email)
+    return onSuccess()
+  } catch (error) {
+    return onError(error)
+  }
+}
+
 export const signOut = async (onSuccess, onError) => {
   try {
     await auth.signOut()

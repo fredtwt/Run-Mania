@@ -28,7 +28,6 @@ const Signup = ({ navigation }) => {
             index: 0,
             routes: [{
               name: "Login",
-              params: { name: user.displayName }
             }]
           }))
           Database.createUser({ id: user.uid, username, email }, () => { }, (error) => alert(error))

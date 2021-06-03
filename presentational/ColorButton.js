@@ -1,7 +1,7 @@
 import * as React from "react"
 import {Button} from "react-native-elements"
 
-const BlueButton = props => {
+const ColorButton = props => {
   return (
     <Button
       buttonStyle={{
@@ -9,6 +9,9 @@ const BlueButton = props => {
         borderRadius: 20,
         width: 250,
         marginBottom: 15,
+        backgroundColor: props.backgroundColor,
+        borderColor: props.borderColor,
+        borderWidth: props.borderWidth,
       }}
       icon={props.icon}
       iconRight
@@ -19,13 +22,14 @@ const BlueButton = props => {
       loadingStyle={{}}
       onPress={props.onPress}
       title={props.title}
-      type="solid"
-      titleStyle={{
+      type={props.type}
+      titleStyle={
+        [props.titleStyle,{
         marginVertical: 2,
-      }
+      }]
       }
     />
   )
 }
 
-export default BlueButton
+export default ColorButton

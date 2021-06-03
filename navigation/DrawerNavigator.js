@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react"
 import { View, StyleSheet } from "react-native"
-import { CommonActions } from "@react-navigation/routers"
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer"
 import { Avatar } from "react-native-elements"
 import { Title, Caption, Paragraph, Drawer } from "react-native-paper"
@@ -8,18 +7,32 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons"
 
 import TabNavigator from "./TabNavigator"
 import MainStackScreen from "./MainStackScreen"
+import Settings from "../screens/Settings"
+import RunningLogs from "../screens/RunningLogs"
+import Running2 from "../screens/Running2"
+import Running3 from "../screens/Running3"
+import Login from "../screens/Login"
+
+import color from "../constants/color"
+
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
 
-const RunningLogsScreen = ({ navigation }) => {
+const SettingsScreen = ({ navigation }) => {
   return (
-    <MainStackScreen initialRouteName="RunningLogs" onPress={() => navigation.openDrawer()} />
+    <MainStackScreen name="Settings" component={Settings} headerTitle="Settings" backgroundColor={color.settingsAccent} onPress={() => navigation.openDrawer()} />
   )
 }
 
-const SettingsScreen = ({ navigation }) => {
+const RunningLogsScreen = ({ navigation }) => {
   return (
-    <MainStackScreen initialRouteName="Settings" onPress={() => navigation.openDrawer()} />
+    <MainStackScreen name="RunningLogs" component={RunningLogs} headerTitle="Running Logs" backgroundColor={color.logsAccent} onPress={() => navigation.openDrawer()} />
+  )
+}
+
+const HomeScreen = () => {
+  return (
+    <TabNavigator initialRouteName="Home" />
   )
 }
 
@@ -60,9 +73,7 @@ const DrawerContent = (props) => {
               />
             )}
             label="Home"
-            onPress={() => {
-              props.navigation.navigate("Main")
-            }} />
+            onPress={() => props.navigation.navigate("Main")} />
           <DrawerItem
             icon={({ color, size }) => (
               <Icon
@@ -72,7 +83,7 @@ const DrawerContent = (props) => {
               />
             )}
             label="Running Logs"
-            onPress={() => { props.navigation.navigate("RunningLogs") }}
+            onPress={() => props.navigation.navigate("RunningLogs")}
           />
           <DrawerItem
             icon={({ color, size }) => (
@@ -83,7 +94,7 @@ const DrawerContent = (props) => {
               />
             )}
             label="Settings"
-            onPress={() => { props.navigation.navigate("Settings") }}
+            onPress={() => props.navigation.navigate("Settings")}
           />
         </Drawer.Section>
       </DrawerContentScrollView>
@@ -106,16 +117,13 @@ const DrawerContent = (props) => {
 
 const DrawerNav = createDrawerNavigator()
 
-const DrawerNavigator = ({ route, navigation }) => {
+const DrawerNavigator = ({ navigation }) => {
   const [username, setUsername] = useState("")
   const [level, setLevel] = useState("")
   const [statsExp, setStatsExp] = useState("")
 
-  const { user } = route.params
-  const userDetails = Database.userDetails(user.uid)
-
   useEffect(() => {
-    userDetails.on("value", (snapshot) => {
+    Database.userDetails(Authentication.getCurrentUserId()).on("value", (snapshot) => {
       const username = snapshot.child("username").val()
       const level = snapshot.child("statistics").child("level").val()
       const statsExp = snapshot.child("statistics").child("exp").val()
@@ -128,12 +136,7 @@ const DrawerNavigator = ({ route, navigation }) => {
   const handleLogout = () => {
     Authentication.signOut(
       () => {
-        navigation.dispatch(CommonActions.reset({
-          index: 0,
-          routes: [{
-            name: "Login"
-          }]
-        }))
+        navigation.navigate("Login")
         return alert("You have successfully signed out!")
       },
       (error) => {
@@ -149,9 +152,12 @@ const DrawerNavigator = ({ route, navigation }) => {
         username={username}
         level={level}
         statsExp={statsExp} />}>
-      <DrawerNav.Screen name="Main" component={TabNavigator} />
+      <DrawerNav.Screen name="Main" component={HomeScreen} />
+      <DrawerNav.Screen name="Running2" component={Running2} />
+      <DrawerNav.Screen name="Running3" component={Running3} />
       <DrawerNav.Screen name="RunningLogs" component={RunningLogsScreen} />
       <DrawerNav.Screen name="Settings" component={SettingsScreen} />
+      <DrawerNav.Screen name="Login" component={Login} />
     </DrawerNav.Navigator>
   )
 }
