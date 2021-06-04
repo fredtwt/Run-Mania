@@ -2,20 +2,31 @@ import * as React from "react";
 import * as Location from "expo-location"
 import { SafeAreaView, StyleSheet, View, Text, Dimensions } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions"
 import Slider from '@react-native-community/slider';
 import { CommonActions } from "@react-navigation/native"
 
 import ColorButton from "../presentational/ColorButton"
 
 const Running = ({ navigation }) => {
-  const LATITUDE_DELTA = 0.02
-  const LONGITUDE_DELTA = 0.001 
-  const [distance, setDistance] = React.useState(1);
-  const [mapRegion, setMapRegion] = React.useState({
+  const LATITUDE_DELTA = 0.004
+  const LONGITUDE_DELTA = 0.001
+  const [distance, setDistance] = React.useState(1)
+  const [origin, setOrigin] = React.useState({
     latitude: 0,
     longitude: 0,
+    latitudeDelta: 0.004,
+    longitudeDelta: 0.001,
     error: null
-  });
+  })
+  const [destination, setDestination] = React.useState({
+    latitude: 0,
+    longitude: 0,
+    latitudeDelta: 0.004,
+    longitudeDelta: 0.001,
+    error: null
+  })
+  const [waypoints, setWaypoints] = React.useState([])
   const minDistance = 1;
   const maxDistance = 20;
   const textLeft = distance * 300 / 20 - 150
@@ -29,20 +40,26 @@ const Running = ({ navigation }) => {
     }))
   }
 
+  const generateRoute = () => {
+
+  }
+
   React.useEffect(() => {
     Location.installWebGeolocationPolyfill()
     navigator.geolocation.getCurrentPosition(pos => {
-      setMapRegion({
+      setOrigin({
+        ...origin,
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
       })
     },
       error => {
-        setMapRegion({
+        setOrigin({
+          ...origin,
           error: error.message
         })
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
     )
   }, [])
 
@@ -51,13 +68,16 @@ const Running = ({ navigation }) => {
       <MapView
         style={styles.map}
         provider="google"
-        region={{
-          latitude: mapRegion.latitude,
-          longitude: mapRegion.longitude,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA
-        }}>
-        <Marker coordinate={mapRegion} />
+        region={origin}>
+        <Marker coordinate={origin} />
+        <MapViewDirections
+          origin={origin}
+          destination={origin}
+          apikey="AIzaSyAdDrHN0itDXhqn6d4iH4ahBh1quzPru6c"
+          waypoints={waypoints}
+          mode="WALKING"
+          strokeWidth={3}
+          strokeColor="purple" />
       </MapView>
       <View style={styles.queryContainer}>
         <View style={styles.sliderContainer}>
@@ -80,21 +100,30 @@ const Running = ({ navigation }) => {
             <Text style={styles.greytext}> {minDistance} km</Text>
             <Text style={styles.greytext}> {maxDistance} km</Text>
           </View>
-          <ColorButton
-            title="Generate Route"
-            type="outline"
-            borderColor="white"
-            borderWidth={2}
-            titleStyle={{
-              color: "white"
-            }}
-            onPress={() => console.log("Generating route")}
-          />
-          <ColorButton
-            title="Start Run"
-            type="outline"
-            onPress={startRun}
-          />
+          <View style={{
+            marginTop: 10
+          }}>
+            <ColorButton
+              title="Generate Route"
+              type="outline"
+              borderColor="white"
+              borderWidth={2}
+              titleStyle={{
+                color: "white"
+              }}
+              onPress={generateRoute}
+            />
+            <ColorButton
+              title="Start Run"
+              type="outline"
+              borderColor="white"
+              borderWidth={2}
+              titleStyle={{
+                color: "white"
+              }}
+              onPress={startRun}
+            />
+          </View>
         </View>
       </View>
     </SafeAreaView>
