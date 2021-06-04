@@ -5,8 +5,10 @@ import MapView, { Marker } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions"
 import Slider from '@react-native-community/slider';
 import { CommonActions } from "@react-navigation/native"
+import randomLocation from 'random-location';
 
 import ColorButton from "../presentational/ColorButton"
+import { State } from "react-native-gesture-handler";
 
 const Running = ({ navigation }) => {
   const LATITUDE_DELTA = 0.004
@@ -26,7 +28,10 @@ const Running = ({ navigation }) => {
     longitudeDelta: 0.001,
     error: null
   })
-  const [waypoints, setWaypoints] = React.useState([])
+  const [waypoints, setWaypoints] = React.useState([]);
+  const addWaypoint = (newWaypoint) => setWaypoints(state => [...state, newWaypoint]);
+  const [distanceGenerated, setDistanceGenerated] = React.useState(0);
+
   const minDistance = 1;
   const maxDistance = 20;
   const textLeft = distance * 300 / 20 - 150
@@ -41,7 +46,12 @@ const Running = ({ navigation }) => {
   }
 
   const generateRoute = () => {
-
+    setWaypoints([]);
+    // console.log("Distance (from for loop)" + distanceGenerated)
+    // console.log(waypoints)
+    for (let i = 0; i < 2; i++) {
+      addWaypoint(randomLocation.randomCircumferencePoint(origin, distance * 1000 / 5));
+    }
   }
 
   React.useEffect(() => {
@@ -77,7 +87,15 @@ const Running = ({ navigation }) => {
           waypoints={waypoints}
           mode="WALKING"
           strokeWidth={3}
-          strokeColor="purple" />
+          strokeColor="purple" 
+          onReady={result => {
+            if (result.distance >= (distance - 0.25) && result.distance <= (distance + 0.25)) {
+              setDistanceGenerated(result.distance)
+              // console.log('Distance: ' + distanceGenerated + 'km')
+            } else {
+              generateRoute();
+            }
+          }}/>
       </MapView>
       <View style={styles.queryContainer}>
         <View style={styles.sliderContainer}>
@@ -90,7 +108,7 @@ const Running = ({ navigation }) => {
             maximumValue={maxDistance}
             minimumTrackTintColor="#FFFFFF"
             maximumTrackTintColor="#000000"
-            step={1}
+            step={0.5}
             onValueChange={val => { setDistance(val) }}
             thumbTintColor='rgb(252, 228, 149)'
             maximumTrackTintColor='#d3d3d3'
@@ -164,7 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   dynamicText: {
-    width: 100,
+    width: 120,
     textAlign: 'center',
     color: "rgb(252, 228, 149)",
     fontWeight: "bold",
