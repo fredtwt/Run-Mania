@@ -8,7 +8,6 @@ import RootStackScreen from "./navigation/RootStackScreen"
 LogBox.ignoreAllLogs()
 
 export default function App() {
-
   return (
     <NavigationContainer>
       <RootStackScreen />

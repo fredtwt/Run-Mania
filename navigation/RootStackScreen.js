@@ -5,6 +5,7 @@ import { createStackNavigator, TransitionPresets } from "@react-navigation/stack
 import Login from "../screens/Login"
 import Signup from "../screens/Signup"
 import DrawerNavigator from "./DrawerNavigator"
+import PasswordReset from "../screens/PasswordReset"
 
 const RootStackScreen = () => {
 
@@ -14,6 +15,7 @@ const RootStackScreen = () => {
     { name: "Login", component: Login },
     { name: "Signup", component: Signup },
     { name: "Main", component: DrawerNavigator },
+    { name: "Reset", component: PasswordReset }
   ]
 
 
