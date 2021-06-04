@@ -26,9 +26,7 @@ const Running2 = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView 
-        style={styles.map} 
-        provider="google"/>
+      <MapView style={styles.map} provider="google"/>
       <View style={styles.runninginfo}>
         <View style={{ flex: 2 }}>
           <AnimatedCircularProgress

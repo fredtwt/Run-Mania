@@ -28,10 +28,7 @@ const Running3 = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView 
-        style={styles.map}
-        provider="google">
-        </MapView>
+      <MapView style={styles.map} provider="google"></MapView>
       <View style={styles.runStats}>
         <Text style={styles.bigText}> Good Job!!</Text>
         <Text style={styles.smallText}> XX km more to level up</Text>
