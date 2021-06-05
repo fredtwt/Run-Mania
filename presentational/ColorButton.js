@@ -5,10 +5,9 @@ const ColorButton = props => {
   return (
     <Button
       buttonStyle={{
-        height: 45,
+        height: props.height,
         borderRadius: 20,
-        width: 250,
-        marginBottom: 15,
+        width: props.width,
         backgroundColor: props.backgroundColor,
         borderColor: props.borderColor,
         borderWidth: props.borderWidth,

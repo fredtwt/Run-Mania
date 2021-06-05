@@ -7,5 +7,6 @@ export default {
   pvpAccent: "#f33e67",
   logsAccent: "#f37d3e",
   settingsAccent: "grey",
-  statsAccent: "#5EF7C6"
+  statsAccent: "#5EF7C6",
+  startAccent: "#639A66"
 }

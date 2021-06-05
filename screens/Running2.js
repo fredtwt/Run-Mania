@@ -4,10 +4,14 @@ import { SafeAreaView, StyleSheet, View, Text, Dimensions, TouchableOpacity, Ale
 import MapView from "react-native-maps";
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
 
-const Running2 = ({ navigation }) => {
+const Running2 = ({ route, navigation }) => {
   const [progress, setProgress] = React.useState(30)
   const [duration, setDuration] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
+  const polylineCoordinates = route.params.polylineCoordinates
+  const generatedDistance = route.params.distance
+  const origin = route.params.origin
+
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -71,7 +75,7 @@ const Running2 = ({ navigation }) => {
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={styles.greenbutton}
-          onPress={() => { setIsPaused(!isPaused); console.log({ isPaused }); }}>
+          onPress={() => { setIsPaused(!isPaused) }}>
           <Text style={styles.buttontext}> {isPaused ? "Resume" : "Pause"} </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.redbutton}

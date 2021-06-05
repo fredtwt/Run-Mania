@@ -8,12 +8,11 @@ import { CommonActions } from "@react-navigation/native"
 import randomLocation from 'random-location';
 
 import ColorButton from "../presentational/ColorButton"
-import { State } from "react-native-gesture-handler";
+import color from "../constants/color"
+import apikey from "../constants/GoogleAPIKey"
+
 
 const Running = ({ navigation }) => {
-  const LATITUDE_DELTA = 0.004
-  const LONGITUDE_DELTA = 0.001
-  const [distance, setDistance] = React.useState(1)
   const [origin, setOrigin] = React.useState({
     latitude: 0,
     longitude: 0,
@@ -21,34 +20,38 @@ const Running = ({ navigation }) => {
     longitudeDelta: 0.001,
     error: null
   })
-  const [destination, setDestination] = React.useState({
-    latitude: 0,
-    longitude: 0,
-    latitudeDelta: 0.004,
-    longitudeDelta: 0.001,
-    error: null
-  })
-  const [waypoints, setWaypoints] = React.useState([]);
-  const addWaypoint = (newWaypoint) => setWaypoints(state => [...state, newWaypoint]);
-  const [distanceGenerated, setDistanceGenerated] = React.useState(0);
+  const [distance, setDistance] = React.useState(1)
+  const [generatedDistance, setGeneratedDistance] = React.useState(0)
+  const [waypoints, setWaypoints] = React.useState([])
+  const [isGeneratingRoute, setIsGeneratingRoute] = React.useState(false)
+  const [isButtonEnabled, setIsButtonEnabled] = React.useState(false)
+  const [isFirstLoad, setIsFirstLoad] = React.useState(true)
+  const [resetLocationButton, setResetLocationButton] = React.useState(0)
+  const [generatedCoordinates, setGeneratedCoordinates] = React.useState([])
 
   const minDistance = 1;
   const maxDistance = 20;
-  const textLeft = distance * 300 / 20 - 150
+
+  const addWaypoint = (newWaypoint) => setWaypoints(state => [...state, newWaypoint]);
 
   const startRun = () => {
     navigation.dispatch(CommonActions.reset({
       index: 0,
       routes: [{
-        name: "Running2"
+        name: "Running2",
+        params: {
+          polylineCoordinates: generatedCoordinates,
+          distance: generatedDistance,
+          origin: origin
+        }
       }]
     }))
   }
 
   const generateRoute = () => {
     setWaypoints([]);
-    // console.log("Distance (from for loop)" + distanceGenerated)
-    // console.log(waypoints)
+    setIsFirstLoad(false)
+    setIsGeneratingRoute(true)
     for (let i = 0; i < 2; i++) {
       addWaypoint(randomLocation.randomCircumferencePoint(origin, distance * 1000 / 5));
     }
@@ -62,6 +65,7 @@ const Running = ({ navigation }) => {
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
       })
+      setIsButtonEnabled(true)
     },
       error => {
         setOrigin({
@@ -69,79 +73,98 @@ const Running = ({ navigation }) => {
           error: error.message
         })
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
     )
+    setTimeout(() => setResetLocationButton(1), 500)
   }, [])
 
   return (
     <SafeAreaView style={styles.container}>
       <MapView
-        style={styles.map}
+        style={[styles.map, { marginTop: resetLocationButton }]}
         provider="google"
+        showsUserLocation={true}
         region={origin}>
-        <Marker coordinate={origin} />
-        <MapViewDirections
-          origin={origin}
-          destination={origin}
-          apikey="AIzaSyAdDrHN0itDXhqn6d4iH4ahBh1quzPru6c"
-          waypoints={waypoints}
-          mode="WALKING"
-          strokeWidth={3}
-          strokeColor="purple" 
-          onReady={result => {
-            if (result.distance >= (distance - 0.25) && result.distance <= (distance + 0.25)) {
-              setDistanceGenerated(result.distance)
-              // console.log('Distance: ' + distanceGenerated + 'km')
-            } else {
-              generateRoute();
-            }
-          }}/>
+        <Marker
+          coordinate={origin}
+          draggable
+          onDragEnd={result => {
+            setOrigin({
+              latitude: result.nativeEvent.coordinate.latitude,
+              longitude: result.nativeEvent.coordinate.longitude
+            })
+          }} />
+        {isFirstLoad
+          ? null
+          : <MapViewDirections
+            origin={origin}
+            destination={origin}
+            apikey={apikey}
+            waypoints={waypoints}
+            mode="WALKING"
+            strokeWidth={5}
+            strokeColor="purple"
+            onReady={result => {
+              if (result.distance >= (distance - 0.25) && result.distance <= (distance + 0.25)) {
+                setIsGeneratingRoute(false)
+                setGeneratedDistance(result.distance)
+                setGeneratedCoordinates(result.coordinates)
+                console.log("final distance: " + result.distance)
+              } else {
+                generateRoute();
+              }
+            }} />
+        }
       </MapView>
-      <View style={styles.queryContainer}>
-        <View style={styles.sliderContainer}>
-          <Text style={[styles.dynamicText, { left: textLeft }]}>
-            {distance + ' km'}
-          </Text>
+      <View style={styles.sliderContainer}>
+        <View style={{ marginTop: "2%", justifyContent: "space-between", height: "35%" }}>
+          <View>
+            <Text style={styles.dynamicText}>
+              {distance + "km"}
+            </Text>
+          </View>
           <Slider
-            style={{ width: 300, height: 40 }}
             minimumValue={minDistance}
             maximumValue={maxDistance}
             minimumTrackTintColor="#FFFFFF"
             maximumTrackTintColor="#000000"
             step={0.5}
             onValueChange={val => { setDistance(val) }}
-            thumbTintColor='rgb(252, 228, 149)'
+            thumbTintColor="#AB98DF"
             maximumTrackTintColor='#d3d3d3'
-            minimumTrackTintColor='rgb(252, 228, 149)'
+            minimumTrackTintColor='#9B83DB'
           />
           <View style={styles.textCon}>
-            <Text style={styles.greytext}> {minDistance} km</Text>
-            <Text style={styles.greytext}> {maxDistance} km</Text>
+            <Text style={styles.whitetext}> {minDistance} km</Text>
+            <Text style={styles.whitetext}> {maxDistance} km</Text>
           </View>
-          <View style={{
-            marginTop: 10
-          }}>
-            <ColorButton
-              title="Generate Route"
-              type="outline"
-              borderColor="white"
-              borderWidth={2}
-              titleStyle={{
-                color: "white"
-              }}
-              onPress={generateRoute}
-            />
-            <ColorButton
-              title="Start Run"
-              type="outline"
-              borderColor="white"
-              borderWidth={2}
-              titleStyle={{
-                color: "white"
-              }}
-              onPress={startRun}
-            />
-          </View>
+        </View>
+        <View style={styles.buttonContainer}>
+          <ColorButton
+            title="Generate Route"
+            type="solid"
+            titleStyle={{
+              color: "white"
+            }}
+            backgroundColor="#7F68A9"
+            width={150}
+            height={60}
+            loading={isGeneratingRoute}
+            disabled={isButtonEnabled ? isGeneratingRoute : true}
+            onPress={generateRoute}
+          />
+          <ColorButton
+            title="Start Run"
+            type="solid"
+            titleStyle={{
+              color: "white"
+            }}
+            backgroundColor={color.startAccent}
+            width={150}
+            height={60}
+            disabled={isButtonEnabled ? (isGeneratingRoute ? true : generatedDistance == 0) : true}
+            onPress={startRun}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -157,22 +180,30 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 3,
+    marginTop: 0,
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
   },
-  queryContainer: {
-    flex: 2,
-    flexDirection: "column",
-    width: 300,
-    marginBottom: 30
+  buttonContainer: {
+    flex: 1,
+    flexDirection: "row",
+    width: "100%",
+    marginTop: "5%",
+    justifyContent: "space-evenly"
   },
   sliderContainer: {
     flex: 1,
+    position: "absolute",
     alignItems: "center",
-    marginVertical: 20,
+    justifyContent: "center",
+    bottom: "-5%",
+    backgroundColor: "rgba(52, 52, 52, 0.8)",
+    width: Dimensions.get('window').width,
+    height: "35%",
+    borderRadius: 30,
   },
-  greytext: {
-    color: "#d3d3d3",
+  whitetext: {
+    color: "white",
     fontWeight: "bold",
     fontSize: 16,
   },
@@ -182,11 +213,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   dynamicText: {
-    width: 120,
     textAlign: 'center',
-    color: "rgb(252, 228, 149)",
+    color: "white",
     fontWeight: "bold",
-    fontSize: 28,
+    fontSize: 35,
   }
 });
 
