@@ -84,7 +84,17 @@ const Running = ({ navigation }) => {
         style={[styles.map, { marginTop: resetLocationButton }]}
         provider="google"
         showsUserLocation={true}
-        region={origin}>
+        // region={origin}
+        camera={{
+          center: {
+            latitude: origin.latitude,
+            longitude: origin.longitude
+          },
+          pitch: 20,
+          heading: 0,
+          altitude: 0,
+          zoom: 18,
+        }}>
         <Marker
           coordinate={origin}
           draggable
