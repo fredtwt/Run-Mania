@@ -16,8 +16,8 @@ const Running2 = ({ route, navigation }) => {
   const [coveredDistance, setCoveredDistance] = React.useState(0)
   const [routeCoordinates, setRouteCoordinates] = React.useState([{latitude: origin.latitude, longitude: origin.longitude}])
   const [userLocation, setUserLocation] = React.useState({
-    latitude: 0,
-    longitude: 0,
+    latitude: origin.latitude,
+    longitude: origin.longitude,
     latitudeDelta: 0.004,
     longitudeDelta: 0.001,
     error: null
@@ -46,12 +46,12 @@ const Running2 = ({ route, navigation }) => {
         })
       },
     )
-
+      
     const interval = setInterval(() => {
       if (isPaused) {
         setDuration(duration => duration)
       } else {
-        const percentage = (coveredDistance/(generatedDistance*1000)).toFixed(2)
+        const percentage = parseFloat((coveredDistance / (generatedDiatance * 1000)).toFixed(2)) 
         setProgress(percentage)
         setDuration(duration => duration + 1)
       }
@@ -60,8 +60,6 @@ const Running2 = ({ route, navigation }) => {
         setPace(((coveredDistance - prevDistance) / 5) * 0.06)
         setPrevDistance(coveredDistance)
       }
-      // console.log(prevDistance)
-
     }, 1000);
     return () => {clearInterval(interval); navigator.geolocation.clearWatch(watchID)};
   }, [isPaused, duration]);
@@ -79,16 +77,15 @@ const Running2 = ({ route, navigation }) => {
       <MapView 
         style={styles.map} 
         provider="google"
-        // region={userLocation}
         camera={{
           center: {
             latitude: userLocation.latitude,
             longitude: userLocation.longitude
           },
-          pitch: 20,
-          heading: 0,
+          pitch: 50,
+          heading: 60,
           altitude: 0,
-          zoom: 18,
+          zoom: 20,
         }}
         showsUserLocation={true}
         >

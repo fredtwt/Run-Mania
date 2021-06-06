@@ -42,6 +42,8 @@ export const signOut = async (onSuccess, onError) => {
   }
 }
 
+export const getCurrentUser = () => auth.currentUser ? auth.currentUser : null
+
 export const getCurrentUserId = () => auth.currentUser ? auth.currentUser.uid : null
 
 export const getCurrentUsername = () => auth.currentUser ? auth.currentUser.displayName : null

@@ -66,6 +66,6 @@
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Your location is required to track your run</string>
     <key>NSLocationAlwaysUsageDescription</key>
-    <string>Your location is required to track your run</string> 
+    <string>Your location is required to track your run</string>
   </dict>
 </plist>
