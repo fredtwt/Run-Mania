@@ -13,11 +13,12 @@ import apikey from "../constants/GoogleAPIKey"
 
 
 const Running = ({ navigation }) => {
+  const [mapView, setMapView] = React.useState(null)
   const [origin, setOrigin] = React.useState({
     latitude: 0,
     longitude: 0,
-    latitudeDelta: 0.004,
-    longitudeDelta: 0.001,
+    latitudeDelta: 0.003,
+    longitudeDelta: 0.003,
     error: null
   })
   const [distance, setDistance] = React.useState(1)
@@ -33,6 +34,39 @@ const Running = ({ navigation }) => {
   const maxDistance = 20;
 
   const addWaypoint = (newWaypoint) => setWaypoints(state => [...state, newWaypoint]);
+
+  const getRegionForCoordinates = (points) => {
+    // points should be an array of { latitude: X, longitude: Y }
+    let minX, maxX, minY, maxY;
+
+    // init first point
+    ((point) => {
+      minX = point.latitude;
+      maxX = point.latitude;
+      minY = point.longitude;
+      maxY = point.longitude;
+    })(points[0]);
+
+    // calculate rect
+    points.map((point) => {
+      minX = Math.min(minX, point.latitude);
+      maxX = Math.max(maxX, point.latitude);
+      minY = Math.min(minY, point.longitude);
+      maxY = Math.max(maxY, point.longitude);
+    });
+
+    const midX = (minX + maxX) / 2;
+    const midY = (minY + maxY) / 2;
+    const deltaX = (maxX - minX);
+    const deltaY = (maxY - minY);
+
+    return {
+      latitude: midX,
+      longitude: midY,
+      latitudeDelta: deltaX,
+      longitudeDelta: deltaY
+    };
+  }
 
   const startRun = () => {
     navigation.dispatch(CommonActions.reset({
@@ -81,10 +115,20 @@ const Running = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <MapView
+        ref={map => setMapView(map)}
         style={[styles.map, { marginTop: resetLocationButton }]}
         provider="google"
         showsUserLocation={true}
-        region={origin}>
+        camera={{
+          center: {
+            latitude: origin.latitude,
+            longitude: origin.longitude
+          },
+          pitch: 20,
+          heading: 0,
+          altitude: 0,
+          zoom: 18,
+        }}>
         <Marker
           coordinate={origin}
           draggable
@@ -109,6 +153,43 @@ const Running = ({ navigation }) => {
                 setIsGeneratingRoute(false)
                 setGeneratedDistance(result.distance)
                 setGeneratedCoordinates(result.coordinates)
+                const newRegion = getRegionForCoordinates(result.coordinates)
+                {
+                  if (result.distance < 5) {
+                    mapView.animateCamera({
+                      center: {
+                        latitude: newRegion.latitude,
+                        longitude: newRegion.longitude
+                      },
+                      pitch: 20,
+                      heading: 0,
+                      altitude: 0,
+                      zoom: 16,
+                    }, { duration: 1000 })
+                  } else if (result.distance < 10) {
+                    mapView.animateCamera({
+                      center: {
+                        latitude: newRegion.latitude,
+                        longitude: newRegion.longitude
+                      },
+                      pitch: 20,
+                      heading: 0,
+                      altitude: 0,
+                      zoom: 15,
+                    }, { duration: 1000 })
+                  } else {
+                    mapView.animateCamera({
+                      center: {
+                        latitude: newRegion.latitude,
+                        longitude: newRegion.longitude
+                      },
+                      pitch: 20,
+                      heading: 0,
+                      altitude: 0,
+                      zoom: 14,
+                    }, { duration: 1000 })
+                  }
+                }
                 console.log("final distance: " + result.distance)
               } else {
                 generateRoute();
@@ -120,7 +201,7 @@ const Running = ({ navigation }) => {
         <View style={{ marginTop: "2%", justifyContent: "space-between", height: "35%" }}>
           <View>
             <Text style={styles.dynamicText}>
-              {distance + "km"}
+              {distance + " km"}
             </Text>
           </View>
           <Slider
@@ -197,7 +278,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     bottom: "-5%",
-    backgroundColor: "rgba(52, 52, 52, 0.8)",
+    backgroundColor: "rgba(52, 52, 52, 0.9)",
     width: Dimensions.get('window').width,
     height: "35%",
     borderRadius: 30,
