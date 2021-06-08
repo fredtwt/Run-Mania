@@ -52,7 +52,7 @@ const Running2 = ({ route, navigation }) => {
       if (isPaused) {
         setDuration(duration => duration)
       } else {
-        const percentage = parseFloat((coveredDistance / (generatedDiatance * 1000)).toFixed(2)) 
+        const percentage = parseFloat((coveredDistance / (generatedDistance * 1000)).toFixed(2)) 
         setProgress(percentage)
         setDuration(duration => duration + 1)
       }

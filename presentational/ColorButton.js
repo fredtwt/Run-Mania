@@ -15,7 +15,7 @@ const ColorButton = props => {
       icon={props.icon}
       iconRight
       disabled={props.disabled}
-      containerStyle={{ margin: 5 }}
+      containerStyle={[props.containerStyle, { margin: 5 }]}
       loading={props.loading}
       loadingProps={{ animating: true }}
       loadingStyle={{}}

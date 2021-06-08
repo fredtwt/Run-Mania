@@ -6,6 +6,7 @@ import { Image } from "react-native-elements"
 import colors from "../constants/color"
 import * as Authentication from "../api/auth"
 import * as Database from "../api/db"
+import { Dimensions } from "react-native"
 
 const Home = () => {
   const [userStatsArr, setUserStatsArr] = useState([])
@@ -40,7 +41,7 @@ const Home = () => {
             borderWidth={1}
             borderColor="#fff" />
           <View style={styles.statsContainer}>
-            <View style={{ flexDirection: "column", flex: 1, alignItems: "center" }}>
+            <View style={{ flexDirection: "column", flex: 1, alignItems: "center", width: "100%"}}>
               <Text style={styles.stats}>HP:
                 <Text style={styles.value}> {userStatsArr.hp}</Text>
               </Text>
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   charContainer: {
     flex: 1,
     flexDirection: "column",
-    width: 350,
+    width: Dimensions.get("window").width,
     alignItems: "center",
   },
   text: {
@@ -126,7 +127,8 @@ const styles = StyleSheet.create({
   statsContainer: {
     flex: 1,
     flexDirection: "row",
-    margin: 15,
+    width: "80%",
+    marginTop: 15,
     justifyContent: "center",
     alignSelf: "center",
   },
@@ -138,7 +140,6 @@ const styles = StyleSheet.create({
   },
   value: {
     color: "#fff",
-    fontStyle: "italic",
     fontSize: 20,
   },
   logsContainer: {
