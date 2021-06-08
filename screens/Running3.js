@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
 import { SafeAreaView, StyleSheet, View, Text, Dimensions } from "react-native";
 import MapView from "react-native-maps";
@@ -7,15 +7,11 @@ import { CommonActions } from "@react-navigation/native"
 
 import BlueButton from "../presentational/BlueButton"
 
-const Running3 = ({ navigation }) => {
-  const finishRun = () => {
-    navigation.dispatch(CommonActions.reset({
-      index: 0,
-      routes: [{
-        name: "Running"
-      }]
-    }))
-  }
+const Running3 = ({ route, navigation }) => {
+  const [coveredDistance, setCoveredDistance] = useState(route.params.distance)
+  const [duration, setDuration] = useState(route.params.duration)
+  const [coordinates, setCoordinates] = useState(route.params.coordinates)
+  const [origin, setOrigin] = useState(route.params.origin)
 
   const goHomeScreen = () => {
     navigation.dispatch(CommonActions.reset({
@@ -93,7 +89,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 24,
     textAlign: 'left',
-    paddingBottom: 5 
+    paddingBottom: 5
   },
   infocomponent: {
     flex: 1,

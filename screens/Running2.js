@@ -25,6 +25,21 @@ const Running2 = ({ route, navigation }) => {
   const [pace, setPace] = React.useState(0)
   const [prevDistance, setPrevDistance] = React.useState(0)
 
+  const endRun = () => {
+    navigation.dispatch(CommonActions.reset({
+      index: 0,
+      routes: [{
+        name: "Running3",
+        params: {
+          duration: duration, 
+          distance: coveredDistance,
+          coordinates: routeCoordinates,
+          origin: origin
+        }
+      }]
+    }))
+  }
+
   React.useEffect(() => {
     Location.installWebGeolocationPolyfill()
     const watchID = navigator.geolocation.watchPosition(pos => {
@@ -161,7 +176,7 @@ const Running2 = ({ route, navigation }) => {
         <TouchableOpacity style={styles.redbutton}
           onPress={() => {Alert.alert("End your run?", "",
             [{ text: "No", onPress: () => console.log('resume run'), style: "destructive" },
-            { text: "Yes", onPress: () => navigation.navigate("Running3") }]), 
+            { text: "Yes", onPress: () => endRun() }]), 
             navigator.geolocation.stopObserving()}} >
           <Text style={styles.buttontext}> End </Text>
         </TouchableOpacity>
