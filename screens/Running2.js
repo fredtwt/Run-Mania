@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from "react-native-vector-icons";
 import { SafeAreaView, StyleSheet, View, Text, Dimensions, TouchableOpacity, Alert } from "react-native";
 import MapView from "react-native-maps";
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
-import { getDistance } from 'geolib'; // npm install geolib
+import { getDistance } from 'geolib';
 
 const Running2 = ({ route, navigation }) => {
   const [progress, setProgress] = React.useState(0)
@@ -57,7 +57,10 @@ const Running2 = ({ route, navigation }) => {
       }
       if (duration % 10 == 5) {
         //calc pace
-        setPace(((coveredDistance - prevDistance) / 5) * 0.06)
+        const difference = coveredDistance - prevDistance
+        const currentPace = parseFloat((1000 / 60) / (difference / 5).toFixed(2))
+        console.log(currentPace)
+        setPace(currentPace)
         setPrevDistance(coveredDistance)
       }
     }, 1000);
@@ -71,6 +74,8 @@ const Running2 = ({ route, navigation }) => {
   const formatDistance = (dist) => dist < 1000 
   ? dist + " m"
   : (dist/1000).toFixed(2) + " km"
+
+  const formatPace = (pace) => (pace.toFixed(2)).replace("." , ":") + " min/km"
 
   return (
     <SafeAreaView style={styles.container}>
@@ -133,7 +138,7 @@ const Running2 = ({ route, navigation }) => {
             <MaterialCommunityIcons name="lightning-bolt" color="white" size={42} />
             <Text style={styles.text}> Pace:     </Text>
             <View style={styles.labelsContainer}>
-              <Text style={styles.text}> {pace} </Text>
+              <Text style={styles.text}> {formatPace(pace)} </Text>
             </View> 
           </View>
         </View>
@@ -210,6 +215,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 0,
     borderColor: 'white',
+    marginRight: -30
   },
   progressText: {
     color: "#D8F3EE",
