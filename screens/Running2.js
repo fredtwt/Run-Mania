@@ -10,19 +10,22 @@ import moment from "moment"//npm install moment --save
 
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
+import color from "../constants/color"
+import ColorButton from "../presentational/ColorButton"
 
 const Running2 = ({ route, navigation }) => {
   const polylineCoordinates = route.params.polylineCoordinates
   const generatedDistance = route.params.distance
   const origin = route.params.origin
 
+  const [map, setMap] = React.useState(null)
   const [progress, setProgress] = React.useState(0)
   const [duration, setDuration] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
   const [weight, setWeight] = React.useState(0)
   const [date, setDate] = React.useState(new Date())
   const [coveredDistance, setCoveredDistance] = React.useState(0)
-  const [routeCoordinates, setRouteCoordinates] = React.useState([{latitude: origin.latitude, longitude: origin.longitude}])
+  const [routeCoordinates, setRouteCoordinates] = React.useState([{ latitude: origin.latitude, longitude: origin.longitude }])
   const [pace, setPace] = React.useState(0)
   const [prevDistance, setPrevDistance] = React.useState(0)
   const [userLocation, setUserLocation] = React.useState({
@@ -37,15 +40,31 @@ const Running2 = ({ route, navigation }) => {
     Location.installWebGeolocationPolyfill()
     const watchID = navigator.geolocation.watchPosition(pos => {
       if (!isPaused) {
-        setCoveredDistance(coveredDistance + getDistance(routeCoordinates[routeCoordinates.length-1], pos.coords))
+        setCoveredDistance(coveredDistance + getDistance(routeCoordinates[routeCoordinates.length - 1], pos.coords))
       }
       setUserLocation({
         ...userLocation,
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
       })
-      setRouteCoordinates(oldstate => [...oldstate, 
-       { latitude: pos.coords.latitude, longitude: pos.coords.longitude }])
+
+      const animateCamera = () => {
+        map.animateCamera({
+          center: {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          },
+          pitch: 60,
+          heading: 0,
+          altitude: 0,
+          zoom: 20
+        }, { duration: 750 })
+      }
+
+      animateCamera()
+
+      setRouteCoordinates(oldstate => [...oldstate,
+      { latitude: pos.coords.latitude, longitude: pos.coords.longitude }])
     },
       error => {
         setUserLocation({
@@ -55,20 +74,11 @@ const Running2 = ({ route, navigation }) => {
       },
     )
 
-    Authentication.setOnAuthStateChanged((user) => {
-      Database.userDetails(user.uid).on("value", (snapshot) => {
-        setWeight(snapshot.val().weight)
-      })
-    },
-    (error) => {
-      console.log(error)
-    })
-
     const interval = setInterval(() => {
       if (isPaused) {
         setDuration(duration => duration)
       } else {
-        const percentage = parseFloat((coveredDistance / (generatedDistance * 1000)).toFixed(2)) 
+        const percentage = parseFloat((coveredDistance / (generatedDistance * 1000)).toFixed(2))
         setProgress(percentage)
         setDuration(duration => duration + 1)
       }
@@ -79,10 +89,25 @@ const Running2 = ({ route, navigation }) => {
         console.log(currentPace)
         setPace(currentPace)
         setPrevDistance(coveredDistance)
-      } 
-    }, 1000);
-    return () => {clearInterval(interval); navigator.geolocation.clearWatch(watchID)};
+      }
+    }, 1000)
+
+    return () => {
+      clearInterval(interval)
+      navigator.geolocation.clearWatch(watchID)
+    }
   }, [isPaused, duration]);
+
+  React.useEffect(() => {
+    Authentication.setOnAuthStateChanged((user) => {
+      Database.userDetails(user.uid).on("value", (snapshot) => {
+        setWeight(snapshot.val().weight)
+      })
+    },
+      (error) => {
+        console.log(error)
+      })
+  }, [])
 
   const endRun = () => {
     Database.addRun({
@@ -91,19 +116,31 @@ const Running2 = ({ route, navigation }) => {
       distance: coveredDistance,
       pace: formatPace(calcAvgPace(coveredDistance, duration)),
       calories: calcCalories(),
-      date: moment(date).utcOffset("+08:00").format("DD-MM-YYYY hh:mm a") 
-    }, 
-    (run) => console.log("run successfully ended"),
-    (error) => console.log(error))
+      date: moment(date).utcOffset("+08:00").format("DD-MM-YYYY hh:mm a")
+    },
+      (run) => console.log("run successfully ended"),
+      (error) => console.log(error))
+
+    Database.addExperience({
+      userId: Authentication.getCurrentUserId(),
+      distance: coveredDistance
+    },
+      () => { },
+      (error) => {
+        console.log(error)
+      })
+
     navigation.dispatch(CommonActions.reset({
       index: 0,
       routes: [{
         name: "Running3",
         params: {
-          duration: duration, 
+          duration: duration,
           distance: coveredDistance,
           coordinates: routeCoordinates,
-          origin: origin
+          origin: origin,
+          calories: calcCalories(),
+          avgPace: calcAvgPace(coveredDistance, duration)
         }
       }]
     }))
@@ -124,105 +161,119 @@ const Running2 = ({ route, navigation }) => {
     ? new Date(seconds * 1000).toISOString().substr(14, 5)
     : new Date(seconds * 1000).toISOString().substr(11, 8)
 
-  const formatDistance = (dist) => dist < 1000 
-  ? dist + " m"
-  : (dist/1000).toFixed(2) + " km"
+  const formatDistance = (dist) => dist < 1000
+    ? dist + " m"
+    : (dist / 1000).toFixed(2) + " km"
 
   const formatPace = (pace) => {
     if (pace == 0) {
-      return "00:00 min/km"
+      return "0:00 min/km"
     }
-    return Math.floor(pace) + ":" + ((pace - Math.floor(pace)) * 60).toFixed(0) + " min/km"
+    const mins = Math.floor(pace)
+    const secs = ((pace - Math.floor(pace)) * 60).toFixed(0)
+    return mins + ":" + (secs < 10 ? "0" + secs : secs) + " min/km"
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView 
-        style={styles.map} 
+      <MapView
+        ref={map => setMap(map)}
+        style={styles.map}
         provider="google"
+        mapPadding={{ bottom: Dimensions.get("window").height * 0.25 }}
+        style={[styles.map]}
         camera={{
           center: {
             latitude: userLocation.latitude,
             longitude: userLocation.longitude
           },
-          pitch: 50,
-          heading: 60,
+          pitch: 60,
+          heading: 0,
           altitude: 0,
           zoom: 20,
         }}
+        scrollEnabled={false}
         showsUserLocation={true}
-        >
+      >
         <MapView.Polyline
           coordinates={polylineCoordinates}
           strokeWidth={5}
           strokeColor="purple"
-          />
-         <MapView.Polyline // for tracking the run
+        />
+        <MapView.Polyline // for tracking the run
           coordinates={routeCoordinates}
           strokeWidth={5}
           strokeColor="blue"
-          />
+        />
       </MapView>
-      <View style={styles.runninginfo}>
-        <View style={{ flex: 2 }}>
-          <AnimatedCircularProgress
-            size={200}
-            width={25}
-            rotation={270}
-            arcSweepAngle={180}
-            fill={progress}
-            tintColor="#00e0ff"
-            backgroundColor="#3d5875">
-            {
-              (progress) => (
-                <Text style={styles.progressText}>
-                  {formatDistance(coveredDistance)}
-                </Text>
-              )
-            }
-          </AnimatedCircularProgress>
-        </View>
-        <View style={styles.infocomponent}>
-          <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="timer" color="white" size={42} />
-            <Text style={styles.text}> Time:</Text>
+      <View style={styles.sliderContainer}>
+        <View style={styles.runninginfo}>
+          <View style={{ flex: 1, marginBottom: "10%" }}>
+            <AnimatedCircularProgress
+              size={200}
+              width={25}
+              rotation={270}
+              arcSweepAngle={180}
+              fill={progress}
+              tintColor="#00e0ff"
+              backgroundColor="#3d5875">
+              {
+                (progress) => (
+                  <Text style={styles.progressText}>
+                    {formatDistance(coveredDistance)}
+                  </Text>
+                )
+              }
+            </AnimatedCircularProgress>
           </View>
-          <View style={styles.labelsContainer}>
-            <Text style={styles.text}> {formatDuration(duration)} </Text>
-          </View>
-        </View>
-        <View style={styles.infocomponent}>
-          <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="lightning-bolt" color="white" size={42} />
-            <Text style={styles.text}> Pace:     </Text>
+          <View style={styles.infocomponent}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons name="timer" color="white" size={35} />
+              <Text style={styles.text}> Time:</Text>
+            </View>
             <View style={styles.labelsContainer}>
-              <Text style={styles.text}> {formatPace(pace)} </Text>
-            </View> 
-          </View>
-        </View>
-        <View style={styles.infocomponent}>
-          <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="road-variant" color="white" size={42} />
-            <Text style={styles.text}> Distance: </Text>
-            <View style={styles.labelsContainer}>
-              <Text style={styles.text}> {formatDistance(coveredDistance)} </Text>
+              <Text style={[styles.text, { color: "#E1E1E1" }]}> {formatDuration(duration)} </Text>
             </View>
           </View>
+          <View style={styles.infocomponent}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons name="lightning-bolt" color="white" size={35} />
+              <Text style={styles.text}> Pace:</Text>
+            </View>
+            <View style={styles.labelsContainer}>
+              <Text style={[styles.text, { color: "#E1E1E1" }]}> {formatPace(pace)} </Text>
+            </View>
+          </View>
+          <View style={styles.buttonsContainer}>
+            <ColorButton
+              title={isPaused ? "Resume" : "Pause"}
+              type="solid"
+              titleStyle={{
+                color: "white"
+              }}
+              backgroundColor="#4CA050"
+              width={170}
+              height={60}
+              onPress={() => setIsPaused(!isPaused)}
+            />
+            <ColorButton
+              title="End"
+              type="solid"
+              titleStyle={{
+                color: "white"
+              }}
+              backgroundColor="#F54B4B"
+              width={170}
+              height={60}
+              onPress={() => {
+                Alert.alert("End your run?", "",
+                  [{ text: "No", onPress: () => console.log('resume run'), style: "destructive" },
+                  { text: "Yes", onPress: () => endRun() }]),
+                  navigator.geolocation.stopObserving()
+              }}
+            />
+          </View>
         </View>
-      </View>
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={styles.greenbutton}
-          onPress={() => { setIsPaused(!isPaused) }}>
-          <Text style={styles.buttontext}> {isPaused ? "Resume" : "Pause"} </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.redbutton}
-          onPress={() => {Alert.alert("End your run?", "",
-            [{ text: "No", onPress: () => console.log('resume run'), style: "destructive" },
-            { text: "Yes", onPress: () => endRun() }]), 
-            navigator.geolocation.stopObserving()}} >
-          <Text style={styles.buttontext}> End </Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   )
@@ -236,76 +287,64 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   map: {
-    flex: 5,
+    flex: 3,
     marginTop: 0,
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
   },
   runninginfo: {
-    paddingTop: 10,
-    flex: 4,
     flexDirection: "column",
-    backgroundColor: "#2E2E2E",
+    marginTop: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 300,
+  },
+  sliderContainer: {
+    flex: 1,
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+    bottom: "-5%",
+    backgroundColor: "rgba(52, 52, 52, 0.9)",
+    width: Dimensions.get('window').width,
+    height: "45%",
+    borderRadius: 30,
   },
   infocomponent: {
     flex: 1,
+    marginTop: "-5%",
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    borderWidth: 0,
-    borderColor: 'white',
-    width: 300
+    width: "90%"
   },
   iconContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 30,
     justifyContent: 'flex-start',
-    paddingLeft: 5,
-    borderWidth: 0,
-    borderColor: 'white',
   },
   labelsContainer: {
-    flex: 1,
+    flex: 2,
     alignItems: 'center',
-    borderWidth: 0,
-    borderColor: 'white',
-    marginRight: -30
   },
   progressText: {
     color: "#D8F3EE",
     fontWeight: "bold",
-    fontSize: 40,
-    paddingBottom: 30
+    fontSize: 32,
+    paddingBottom: 50
   },
   text: {
     color: "white",
-    fontSize: 30,
+    fontSize: 28,
   },
   buttonsContainer: {
     flex: 1,
+    width: "100%",
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: "space-evenly",
     flexDirection: 'row',
-  },
-  redbutton: {
-    flex: 1,
-    padding: 10,
-    borderColor: "#2E2E2E",
-    backgroundColor: "red",
-    borderRadius: 25,
-    marginHorizontal: 4,
-  },
-  greenbutton: {
-    flex: 1,
-    padding: 10,
-    borderColor: "#2E2E2E",
-    backgroundColor: "green",
-    borderRadius: 25,
-    marginHorizontal: 4
+    marginBottom: "10%"
   },
   buttontext: {
     color: "white",

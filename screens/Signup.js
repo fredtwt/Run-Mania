@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { StyleSheet, ScrollView, KeyboardAvoidingView, View, Text, StatusBar, Keyboard, Alert } from "react-native"
+import { StyleSheet, ScrollView, KeyboardAvoidingView, View, Text, StatusBar, Keyboard, Alert, SafeAreaView } from "react-native"
 import DropDownPicker from "react-native-dropdown-picker" //npm install react-native-dropdown-picker
 import { CommonActions } from "@react-navigation/routers"
 
@@ -24,10 +24,10 @@ const Signup = ({ navigation }) => {
   const [jobOpen, setJobOpen] = useState(false)
   const [jobValue, setJobValue] = useState(null)
   const [job, setJob] = useState([
-    {label: "Warrior", value: "Warrior"},
-    {label: "Rogue", value: "Rogue"},
-    {label: "Archer", value: "Archer"},
-    {label: "Mage", value: "Mage"}
+    {label: "Warrior (Well-spread out stats)", value: "Warrior"},
+    {label: "Rogue (High EVD & SPD)", value: "Rogue"},
+    {label: "Archer (High ATK & SPD)", value: "Archer"},
+    {label: "Bruiser (High HP & DEF)", value: "Bruiser"}
   ])
   const [confirmationPassword, setConfirmationPassword] = useState("")
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
@@ -80,7 +80,7 @@ const Signup = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#2E2E2E" barStyle="light-content" />
       <View style={styles.headerContainer}>
         <Text style={styles.text_header}>Registration</Text>
@@ -178,7 +178,7 @@ const Signup = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   )
 }
 

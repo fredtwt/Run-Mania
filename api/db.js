@@ -54,6 +54,47 @@ export const addRun = async ({ userId, time, distance, pace, calories, date }, o
     return onError(error)
   }
 }
+export const addExperience = async ({userId, distance}, onSuccess, onError) => {
+  try {
+    const stats = db.ref("users/" + userId + "/statistics")
+    const atk = (await stats.child("atk").get()).val()
+    const def = (await stats.child("def").get()).val()
+    const evd = (await stats.child("evd").get()).val()
+    const hp = (await stats.child("hp").get()).val()
+    const spd = (await stats.child("spd").get()).val()
+    const level = (await stats.child("level").get()).val()
+    const levelExp = level * 2 * 1000 // in meters
+    const currentExp = (await stats.child("exp").get()).val() + distance
+
+    if (currentExp >= levelExp) {
+      await stats.update({
+        level: level + 1,
+        exp: currentExp - levelExp,
+        atk: atk + 10,
+        def: def + 10,
+        evd: evd + 10,
+        spd: spd + 10,
+        hp: hp + 10 
+      })
+    } else {
+      await stats.update({
+        exp: currentExp
+      })
+    }
+    return onSuccess()
+  } catch (error) {
+    return onError(error)
+  }
+}
+
+export const expPercentage = async () => {
+    const stats = db.ref("users/" + userId + "/statistics")
+    const level = (await stats.child("level").get()).val()
+    const levelExp = level * 2 * 1000 // in meters
+    const currentExp = (await stats.child("exp").get()).val()
+
+    return Math.round(currentExp/levelExp)
+}
 
 export const userDetails = (id) => {
   return db.ref("users/" + id)

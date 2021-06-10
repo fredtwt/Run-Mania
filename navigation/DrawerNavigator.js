@@ -51,13 +51,13 @@ const DrawerContent = (props) => {
                 <Caption style={styles.caption}>Level {props.level}</Caption>
               </View>
             </View>
-            <View style={styles.row}>
+            <View style={styles.column}>
               <View style={styles.section}>
-                <Paragraph style={[styles.paragraph, styles.caption]}>100</Paragraph>
-                <Caption style={styles.caption}>Runs</Caption>
+                <Paragraph style={[styles.paragraph, styles.caption]}>{props.numberOfRuns}</Paragraph>
+                <Caption style={styles.caption}>runs in total</Caption>
               </View>
               <View style={styles.section}>
-                <Paragraph style={[styles.paragraph, styles.caption]}>{props.statsExp}km</Paragraph>
+                <Paragraph style={[styles.paragraph, styles.caption]}>{props.statsExp}m</Paragraph>
                 <Caption style={styles.caption}>to level up</Caption>
               </View>
             </View>
@@ -74,6 +74,26 @@ const DrawerContent = (props) => {
             )}
             label="Home"
             onPress={() => props.navigation.navigate("Main")} />
+          <DrawerItem
+            icon={({ color, size }) => (
+              <Icon
+                name="account-group-outline"
+                color={color}
+                size={size}
+              />
+            )}
+            label="Friends"
+          />
+          <DrawerItem
+            icon={({ color, size }) => (
+              <Icon
+                name="trophy-variant-outline"
+                color={color}
+                size={size}
+              />
+            )}
+            label="Leaderboard"
+          />
           <DrawerItem
             icon={({ color, size }) => (
               <Icon
@@ -121,6 +141,7 @@ const DrawerNavigator = ({ navigation }) => {
   const [username, setUsername] = useState("")
   const [level, setLevel] = useState("")
   const [statsExp, setStatsExp] = useState("")
+  const [numberOfRuns, setNumberOfRuns] = useState(0)
 
   useEffect(() => {
     Database.userDetails(Authentication.getCurrentUserId()).on("value", (snapshot) => {
@@ -130,6 +151,7 @@ const DrawerNavigator = ({ navigation }) => {
       setUsername(username)
       setLevel(level)
       setStatsExp(statsExp)
+      setNumberOfRuns(snapshot.child("runningLogs/numberOfRuns").val())
     })
   }, [])
 
@@ -149,9 +171,10 @@ const DrawerNavigator = ({ navigation }) => {
     <DrawerNav.Navigator drawerContent={
       props => <DrawerContent {...props}
         onPress={handleLogout}
+        numberOfRuns={numberOfRuns}
         username={username}
         level={level}
-        statsExp={statsExp} />}>
+        statsExp={(level * 2 * 1000) - statsExp} />}>
       <DrawerNav.Screen name="Main" component={HomeScreen} />
       <DrawerNav.Screen name="Running2" component={Running2} />
       <DrawerNav.Screen name="Running3" component={Running3} />
@@ -184,6 +207,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flexDirection: "row",
     alignItems: "center",
+  },
+  column: {
+    marginTop: 20,
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   section: {
     flexDirection: "row",

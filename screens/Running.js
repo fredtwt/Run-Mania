@@ -157,7 +157,18 @@ const Running = ({ navigation }) => {
                 setGeneratedCoordinates(result.coordinates)
                 const newRegion = getRegionForCoordinates(result.coordinates)
                 {
-                  if (result.distance < 5) {
+                  if (result.distance  < 2) {
+                    mapView.animateCamera({
+                      center: {
+                        latitude: newRegion.latitude,
+                        longitude: newRegion.longitude
+                      },
+                      pitch: 20,
+                      heading: 0,
+                      altitude: 0,
+                      zoom: 17,
+                    }, { duration: 1000 })
+                  } else if (result.distance < 5) {
                     mapView.animateCamera({
                       center: {
                         latitude: newRegion.latitude,

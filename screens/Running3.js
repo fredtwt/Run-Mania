@@ -12,8 +12,8 @@ const Running3 = ({ route, navigation }) => {
   const [duration, setDuration] = useState(route.params.duration)
   const [coordinates, setCoordinates] = useState(route.params.coordinates)
   const [origin, setOrigin] = useState(route.params.origin)
-  const [avgPace, setAvgPace] = useState((1000 / 60) / (coveredDistance / duration))
-  const [calories, setCalories] = useState(24.5 * 65 / 200 * (duration / 60)) // change 65 to weight from firebase
+  const [avgPace, setAvgPace] = useState(route.params.avgPace)
+  const [calories, setCalories] = useState(route.params.calories) // change 65 to weight from firebase
 
   const goHomeScreen = () => {
     navigation.dispatch(CommonActions.reset({
