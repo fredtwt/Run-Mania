@@ -157,7 +157,7 @@ const Running = ({ navigation }) => {
                 setGeneratedCoordinates(result.coordinates)
                 const newRegion = getRegionForCoordinates(result.coordinates)
                 {
-                  if (result.distance  < 2) {
+                  if (result.distance < 2) {
                     mapView.animateCamera({
                       center: {
                         latitude: newRegion.latitude,
@@ -166,7 +166,7 @@ const Running = ({ navigation }) => {
                       pitch: 20,
                       heading: 0,
                       altitude: 0,
-                      zoom: 17,
+                      zoom: 17.5,
                     }, { duration: 1000 })
                   } else if (result.distance < 5) {
                     mapView.animateCamera({
@@ -212,9 +212,12 @@ const Running = ({ navigation }) => {
       </MapView>
       <View style={styles.sliderContainer}>
         <View style={{ marginTop: "2%", justifyContent: "space-between", height: "35%" }}>
-          <View>
+          <View style={{marginBottom: "1%"}}>
             <Text style={styles.dynamicText}>
               {distance + " km"}
+            </Text>
+            <Text style={styles.actualDistanceText}>
+              Actual: {generatedDistance + " km"}
             </Text>
           </View>
           <Slider
@@ -256,7 +259,7 @@ const Running = ({ navigation }) => {
             backgroundColor={color.startAccent}
             width={150}
             height={60}
-            disabled={isButtonEnabled ? (isGeneratingRoute ? true : generatedDistance == 0) : true}
+            disabled={!isButtonEnabled}
             onPress={startRun}
           />
         </View>
@@ -282,7 +285,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     width: "100%",
-    marginTop: "5%",
+    marginTop: "7%",
     justifyContent: "space-evenly"
   },
   sliderContainer: {
@@ -311,6 +314,12 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 35,
+  },
+  actualDistanceText: {
+    textAlign: 'center',
+    color: "#AB98DF",
+    fontSize: 16,
+    marginTop: "-2%"
   }
 });
 

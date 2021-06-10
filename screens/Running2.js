@@ -10,7 +10,6 @@ import moment from "moment"//npm install moment --save
 
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
-import color from "../constants/color"
 import ColorButton from "../presentational/ColorButton"
 
 const Running2 = ({ route, navigation }) => {
@@ -20,8 +19,8 @@ const Running2 = ({ route, navigation }) => {
 
   const [map, setMap] = React.useState(null)
   const [progress, setProgress] = React.useState(0)
-  const [duration, setDuration] = React.useState(0);
-  const [isPaused, setIsPaused] = React.useState(false);
+  const [duration, setDuration] = React.useState(0)
+  const [isPaused, setIsPaused] = React.useState(false)
   const [weight, setWeight] = React.useState(0)
   const [date, setDate] = React.useState(new Date())
   const [coveredDistance, setCoveredDistance] = React.useState(0)
@@ -61,10 +60,13 @@ const Running2 = ({ route, navigation }) => {
         }, { duration: 750 })
       }
 
-      animateCamera()
+      if (map != null) {
+        animateCamera()
+      }
 
       setRouteCoordinates(oldstate => [...oldstate,
       { latitude: pos.coords.latitude, longitude: pos.coords.longitude }])
+
     },
       error => {
         setUserLocation({
@@ -95,6 +97,7 @@ const Running2 = ({ route, navigation }) => {
     return () => {
       clearInterval(interval)
       navigator.geolocation.clearWatch(watchID)
+      setWeight(0)
     }
   }, [isPaused, duration]);
 
@@ -125,25 +128,27 @@ const Running2 = ({ route, navigation }) => {
       userId: Authentication.getCurrentUserId(),
       distance: coveredDistance
     },
-      () => { },
+      (levelExp, currentExp) => {
+        navigation.dispatch(CommonActions.reset({
+          index: 0,
+          routes: [{
+            name: "Running3",
+            params: {
+              duration: duration,
+              distance: coveredDistance,
+              coordinates: routeCoordinates,
+              origin: origin,
+              calories: calcCalories(),
+              avgPace: calcAvgPace(coveredDistance, duration),
+              currentExp: currentExp,
+              levelExp: levelExp
+            }
+          }]
+        }))
+      },
       (error) => {
         console.log(error)
       })
-
-    navigation.dispatch(CommonActions.reset({
-      index: 0,
-      routes: [{
-        name: "Running3",
-        params: {
-          duration: duration,
-          distance: coveredDistance,
-          coordinates: routeCoordinates,
-          origin: origin,
-          calories: calcCalories(),
-          avgPace: calcAvgPace(coveredDistance, duration)
-        }
-      }]
-    }))
   }
 
   const calcCalories = () => {
@@ -206,26 +211,42 @@ const Running2 = ({ route, navigation }) => {
           strokeColor="blue"
         />
       </MapView>
-      <View style={styles.sliderContainer}>
+      <View style={generatedDistance > 0 ? styles.sliderContainer : [styles.sliderContainer, { height: "40%" }]}>
         <View style={styles.runninginfo}>
-          <View style={{ flex: 1, marginBottom: "10%" }}>
-            <AnimatedCircularProgress
-              size={200}
-              width={25}
-              rotation={270}
-              arcSweepAngle={180}
-              fill={progress}
-              tintColor="#00e0ff"
-              backgroundColor="#3d5875">
-              {
-                (progress) => (
-                  <Text style={styles.progressText}>
-                    {formatDistance(coveredDistance)}
-                  </Text>
-                )
-              }
-            </AnimatedCircularProgress>
-          </View>
+          {
+            generatedDistance <= 0
+              ?
+              <View style={{ marginBottom: 10, alignItems: "center" }}>
+                <Text style={styles.progressText}>
+                  {formatDistance(coveredDistance)}
+                </Text>
+              </View>
+              :
+              <View style={{ flex: 1, marginBottom: "10%" }}>
+                <AnimatedCircularProgress
+                  size={200}
+                  width={25}
+                  rotation={270}
+                  arcSweepAngle={180}
+                  fill={progress}
+                  tintColor="#00e0ff"
+                  backgroundColor="#3d5875">
+                  {
+                    (progress) => (
+                      <View style={{ marginBottom: 60, alignItems: "center" }}>
+                        <Text style={styles.progressText}>
+                          {formatDistance(coveredDistance)}
+                        </Text>
+                        <Text style={{ color: "#A7A7A7", fontSize: 16, fontStyle: "italic" }}>
+                          Target: {formatDistance(generatedDistance * 1000)}
+                        </Text>
+                      </View>
+                    )
+                  }
+                </AnimatedCircularProgress>
+              </View>
+
+          }
           <View style={styles.infocomponent}>
             <View style={styles.iconContainer}>
               <MaterialCommunityIcons name="timer" color="white" size={35} />
@@ -332,7 +353,6 @@ const styles = StyleSheet.create({
     color: "#D8F3EE",
     fontWeight: "bold",
     fontSize: 32,
-    paddingBottom: 50
   },
   text: {
     color: "white",
@@ -344,7 +364,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: "space-evenly",
     flexDirection: 'row',
-    marginBottom: "10%"
+    marginBottom: "13%"
   },
   buttontext: {
     color: "white",

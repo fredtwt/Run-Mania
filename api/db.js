@@ -76,12 +76,13 @@ export const addExperience = async ({userId, distance}, onSuccess, onError) => {
         spd: spd + 10,
         hp: hp + 10 
       })
+      return onSuccess(levelExp, currentExp - levelExp)
     } else {
       await stats.update({
         exp: currentExp
       })
+      return onSuccess(levelExp, currentExp)
     }
-    return onSuccess()
   } catch (error) {
     return onError(error)
   }

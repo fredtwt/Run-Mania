@@ -94,6 +94,7 @@ const Home = () => {
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 23, fontWeight: "bold", color: "white", alignSelf: "center" }}>{prevRun != null ? Math.round(prevRun.calories) : "0"}</Text>
                 <Text style={{ fontSize: 12, color: "#BBBDBD", alignSelf: "center" }}>CALORIES</Text>
+                <Text style={{ fontSize: 10, color: "#BBBDBD", alignSelf: "center" }}>(kcal)</Text>
               </View>
             </View>
           </View>
