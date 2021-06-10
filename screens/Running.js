@@ -119,6 +119,8 @@ const Running = ({ navigation }) => {
         style={[styles.map, { marginTop: resetLocationButton }]}
         provider="google"
         showsUserLocation={true}
+        showsMyLocationButton={true}
+        mapPadding={{bottom: Dimensions.get("window").height * 0.25}}
         camera={{
           center: {
             latitude: origin.latitude,

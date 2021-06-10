@@ -1,17 +1,34 @@
 import React, { useState } from "react"
-import { StyleSheet, ScrollView, KeyboardAvoidingView, View, Text, StatusBar, Keyboard } from "react-native"
+import { StyleSheet, ScrollView, KeyboardAvoidingView, View, Text, StatusBar, Keyboard, Alert } from "react-native"
+import DropDownPicker from "react-native-dropdown-picker" //npm install react-native-dropdown-picker
+import { CommonActions } from "@react-navigation/routers"
 
 import BlueButton from "../presentational/BlueButton"
 import InputBox from "../presentational/InputBox"
 
 import * as Authentication from "../api/auth"
 import * as Database from "../api/db"
-import { CommonActions } from "@react-navigation/routers"
 
 const Signup = ({ navigation }) => {
   const [username, setUserName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [height, setHeight] = useState(null)
+  const [weight, setWeight] = useState(null)
+  const [genderOpen, setGenderOpen] = useState(false)
+  const [genderValue, setGenderValue] = useState(null)
+  const [gender, setGender] = useState([
+    {label: "Male", value: "Male"},
+    {label: "Female", value: "Female"}
+  ])
+  const [jobOpen, setJobOpen] = useState(false)
+  const [jobValue, setJobValue] = useState(null)
+  const [job, setJob] = useState([
+    {label: "Warrior", value: "Warrior"},
+    {label: "Rogue", value: "Rogue"},
+    {label: "Archer", value: "Archer"},
+    {label: "Mage", value: "Mage"}
+  ])
   const [confirmationPassword, setConfirmationPassword] = useState("")
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [isConfirmationPasswordVisible, setIsConfirmationPasswordVisible] = useState(false)
@@ -20,7 +37,7 @@ const Signup = ({ navigation }) => {
   const handleRegister = () => {
     Keyboard.dismiss()
     setIsRegisterLoading(true)
-    if (checkEmail() && checkPassword() && checkConfirmationPassword() && username != "") {
+    if (checkEmail() && checkPassword() && checkConfirmationPassword() && username != "" && checkNumeric(height) && checkNumeric(weight) && genderValue != null && jobValue != null) {
       Authentication.createAccount(
         { username, email, password },
         (user) => {
@@ -30,23 +47,28 @@ const Signup = ({ navigation }) => {
               name: "Login",
             }]
           }))
-          Database.createUser({ id: user.uid, username, email }, () => { }, (error) => alert(error))
-          return alert("Account has been created successfully!")
+          Database.createUser({ id: user.uid, username: username, email: email, gender: genderValue, height: height, weight: weight, job: jobValue }, () => { }, (error) => alert(error))
+          return Alert.alert(null, "Account has been created successfully!")
         },
         (error) => {
           setIsRegisterLoading(false)
-          return alert(error)
+          return Alert.alert(null, error.message)
         }
       )
     } else {
       setIsRegisterLoading(false)
-      return alert("Unsuccessful in signing up!")
+      return Alert.alert("Unsuccessful in signing up", "Missing required fields, please try again!")
     }
   }
 
   const checkEmail = () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/
     return email !== null && reg.test(email)
+  }
+
+  const checkNumeric = (val) => {
+    let reg = /^[0-9]+$/
+    return reg.test(val) 
   }
 
   const checkPassword = () => {
@@ -102,6 +124,46 @@ const Signup = ({ navigation }) => {
             errorMessage={!checkConfirmationPassword() && confirmationPassword != "" ? "Passwords do not match!" : ""}
             rightIcon={isConfirmationPasswordVisible ? "eye-off" : "eye"}
             rightIconColor="grey" />
+          <InputBox
+            placeholder="Enter your weight (kg)"
+            label="Weight:"
+            leftIcon="weight-kilogram"
+            value={weight}
+            onChangeText={(val) => setWeight(val)}
+            errorMessage={weight != null ? checkNumeric(weight) ? "" : "Only numeric values allowed!" : ""} />
+          <InputBox
+            placeholder="Enter your height (cm)"
+            label="Height:"
+            leftIcon="human-male-height-variant"
+            value={height}
+            onChangeText={(val) => setHeight(val)}
+            errorMessage={height != null ? checkNumeric(height) ? "" : "Only numeric values allowed!" : ""} />
+          <DropDownPicker 
+            placeholder="Select your gender"
+            containerStyle={{
+              marginLeft: 5,
+              width: "98%"
+            }}
+            dropDownDirection="TOP"
+            open={genderOpen}
+            value={genderValue}
+            items={gender}
+            setOpen={setGenderOpen}
+            setValue={setGenderValue}
+            setItems={setGender}/>
+          <DropDownPicker 
+            placeholder="Select your avatar's job class"
+            containerStyle={{
+              marginLeft: 5,
+              marginTop: 20,
+              width: "98%"
+            }}
+            open={jobOpen}
+            value={jobValue}
+            items={job}
+            setOpen={setJobOpen}
+            setValue={setJobValue}
+            setItems={setJob}/>
           <View style={styles.buttonContainer}>
             <BlueButton
               title="Create Account"
@@ -129,15 +191,13 @@ const styles = StyleSheet.create({
   headerContainer: {
     flex: 1,
     justifyContent: "flex-end",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    marginLeft: 15
+    marginLeft: 22,
   },
   inputContainer: {
-    flex: 10,
+    flex: 12,
     alignSelf: "center",
     justifyContent: "center",
-    marginTop: 50,
+    marginTop: 20,
     width: "90%"
   },
   buttonContainer: {

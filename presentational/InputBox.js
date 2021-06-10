@@ -13,7 +13,9 @@ const InputBox = props => {
       autoCapitalize="none"
       containerStyle={{}}
       disabledInputStyle={{ background: "#ddd" }}
-      inputContainerStyle={{}}
+      inputContainerStyle={{
+        height: 40
+      }}
       errorMessage={props.errorMessage}
       errorStyle={{color: "#FF4747"}}
       errorProps={{}}

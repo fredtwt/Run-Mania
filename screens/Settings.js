@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { Dimensions } from "react-native"
 import { View, StyleSheet, Text, TextInput } from "react-native"
-import { Dialog } from "react-native-simple-dialogs"
+import { Dialog } from "react-native-simple-dialogs" //npm i -S react-native-simple-dialogs
 
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"

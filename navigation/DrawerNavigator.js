@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { View, StyleSheet } from "react-native"
+import { View, StyleSheet, Alert } from "react-native"
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer"
 import { Avatar } from "react-native-elements"
 import { Title, Caption, Paragraph, Drawer } from "react-native-paper"
@@ -137,7 +137,7 @@ const DrawerNavigator = ({ navigation }) => {
     Authentication.signOut(
       () => {
         navigation.navigate("Login")
-        return alert("You have successfully signed out!")
+        return Alert.alert(null, "You have successfully signed out!")
       },
       (error) => {
         return alert(error)

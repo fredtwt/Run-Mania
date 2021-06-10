@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { StyleSheet, SafeAreaView, KeyboardAvoidingView, View, Image, Text, StatusBar, Keyboard, TouchableOpacity } from "react-native"
+import { StyleSheet, SafeAreaView, KeyboardAvoidingView, View, Image, Text, StatusBar, Keyboard, TouchableOpacity, Alert } from "react-native"
 import { CommonActions } from "@react-navigation/native"
 
 import BlueButton from "../presentational/BlueButton"
@@ -27,7 +27,7 @@ const Login = ({ navigation }) => {
       })),
       (error) => {
         setIsLoginLoading(false)
-        return alert(error)
+        return Alert.alert(null, error.message)
       }
     )
   }

@@ -4,17 +4,27 @@ import { MaterialCommunityIcons } from "react-native-vector-icons";
 import { SafeAreaView, StyleSheet, View, Text, Dimensions, TouchableOpacity, Alert } from "react-native";
 import MapView from "react-native-maps";
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
+import { CommonActions } from "@react-navigation/native"
 import { getDistance } from 'geolib';
+import moment from "moment"//npm install moment --save
+
+import * as Database from "../api/db"
+import * as Authentication from "../api/auth"
 
 const Running2 = ({ route, navigation }) => {
-  const [progress, setProgress] = React.useState(0)
-  const [duration, setDuration] = React.useState(0);
-  const [isPaused, setIsPaused] = React.useState(false);
   const polylineCoordinates = route.params.polylineCoordinates
   const generatedDistance = route.params.distance
   const origin = route.params.origin
+
+  const [progress, setProgress] = React.useState(0)
+  const [duration, setDuration] = React.useState(0);
+  const [isPaused, setIsPaused] = React.useState(false);
+  const [weight, setWeight] = React.useState(0)
+  const [date, setDate] = React.useState(new Date())
   const [coveredDistance, setCoveredDistance] = React.useState(0)
   const [routeCoordinates, setRouteCoordinates] = React.useState([{latitude: origin.latitude, longitude: origin.longitude}])
+  const [pace, setPace] = React.useState(0)
+  const [prevDistance, setPrevDistance] = React.useState(0)
   const [userLocation, setUserLocation] = React.useState({
     latitude: origin.latitude,
     longitude: origin.longitude,
@@ -22,23 +32,6 @@ const Running2 = ({ route, navigation }) => {
     longitudeDelta: 0.001,
     error: null
   })
-  const [pace, setPace] = React.useState(0)
-  const [prevDistance, setPrevDistance] = React.useState(0)
-
-  const endRun = () => {
-    navigation.dispatch(CommonActions.reset({
-      index: 0,
-      routes: [{
-        name: "Running3",
-        params: {
-          duration: duration, 
-          distance: coveredDistance,
-          coordinates: routeCoordinates,
-          origin: origin
-        }
-      }]
-    }))
-  }
 
   React.useEffect(() => {
     Location.installWebGeolocationPolyfill()
@@ -61,7 +54,16 @@ const Running2 = ({ route, navigation }) => {
         })
       },
     )
-      
+
+    Authentication.setOnAuthStateChanged((user) => {
+      Database.userDetails(user.uid).on("value", (snapshot) => {
+        setWeight(snapshot.val().weight)
+      })
+    },
+    (error) => {
+      console.log(error)
+    })
+
     const interval = setInterval(() => {
       if (isPaused) {
         setDuration(duration => duration)
@@ -70,17 +72,53 @@ const Running2 = ({ route, navigation }) => {
         setProgress(percentage)
         setDuration(duration => duration + 1)
       }
-      if (duration % 10 == 5) {
+      if (duration % 10 == 5 && coveredDistance != 0) {
         //calc pace
         const difference = coveredDistance - prevDistance
-        const currentPace = parseFloat((1000 / 60) / (difference / 5).toFixed(2))
+        const currentPace = parseFloat(((1000 / 60) / (difference / 5)).toFixed(2))
         console.log(currentPace)
         setPace(currentPace)
         setPrevDistance(coveredDistance)
-      }
+      } 
     }, 1000);
     return () => {clearInterval(interval); navigator.geolocation.clearWatch(watchID)};
   }, [isPaused, duration]);
+
+  const endRun = () => {
+    Database.addRun({
+      userId: Authentication.getCurrentUserId(),
+      time: formatDuration(duration),
+      distance: coveredDistance,
+      pace: formatPace(calcAvgPace(coveredDistance, duration)),
+      calories: calcCalories(),
+      date: moment(date).utcOffset("+08:00").format("DD-MM-YYYY hh:mm a") 
+    }, 
+    (run) => console.log("run successfully ended"),
+    (error) => console.log(error))
+    navigation.dispatch(CommonActions.reset({
+      index: 0,
+      routes: [{
+        name: "Running3",
+        params: {
+          duration: duration, 
+          distance: coveredDistance,
+          coordinates: routeCoordinates,
+          origin: origin
+        }
+      }]
+    }))
+  }
+
+  const calcCalories = () => {
+    return 24.5 * weight / 200 * (duration / 60)
+  }
+
+  const calcAvgPace = (distance, duration) => {
+    if (distance == 0) {
+      return 0
+    }
+    return (1000 / 60) / (coveredDistance / duration)
+  }
 
   const formatDuration = (seconds) => seconds < 3600
     ? new Date(seconds * 1000).toISOString().substr(14, 5)
@@ -90,7 +128,12 @@ const Running2 = ({ route, navigation }) => {
   ? dist + " m"
   : (dist/1000).toFixed(2) + " km"
 
-  const formatPace = (pace) => (pace.toFixed(2)).replace("." , ":") + " min/km"
+  const formatPace = (pace) => {
+    if (pace == 0) {
+      return "00:00 min/km"
+    }
+    return Math.floor(pace) + ":" + ((pace - Math.floor(pace)) * 60).toFixed(0) + " min/km"
+  }
 
   return (
     <SafeAreaView style={styles.container}>

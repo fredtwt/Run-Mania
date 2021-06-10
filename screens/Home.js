@@ -10,6 +10,7 @@ import { Dimensions } from "react-native"
 
 const Home = () => {
   const [userStatsArr, setUserStatsArr] = useState([])
+  const [prevRun, setPrevRun] = useState([])
   const [username, setUsername] = useState()
 
   useEffect(() => {
