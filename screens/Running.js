@@ -6,6 +6,7 @@ import MapViewDirections from "react-native-maps-directions"
 import Slider from '@react-native-community/slider';
 import { CommonActions } from "@react-navigation/native"
 import randomLocation from 'random-location';
+import Spinner from "react-native-loading-spinner-overlay"
 
 import ColorButton from "../presentational/ColorButton"
 import color from "../constants/color"
@@ -21,6 +22,7 @@ const Running = ({ navigation }) => {
     longitudeDelta: 0.003,
     error: null
   })
+	const [loading, setLoading] = React.useState(true)
   const [distance, setDistance] = React.useState(1)
   const [generatedDistance, setGeneratedDistance] = React.useState(0)
   const [waypoints, setWaypoints] = React.useState([])
@@ -109,13 +111,22 @@ const Running = ({ navigation }) => {
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
     )
+		setTimeout(() => setLoading(false), 4000)
     setTimeout(() => setResetLocationButton(1), 500)
   }, [])
 
   return (
     <SafeAreaView style={styles.container}>
+			<Spinner 
+				visible={loading}
+				textContent={"Loading map..."}
+				overlayColor="rgba(0, 0, 0, 0.8)"
+				textStyle={{
+					color: "white"
+				}}/>
       <MapView
         ref={map => setMapView(map)}
+				loadingEnabled={true}
         style={[styles.map, { marginTop: resetLocationButton }]}
         provider="google"
         showsUserLocation={true}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { View, StyleSheet, Text, ActivityIndicator } from "react-native"
 import * as Progress from "react-native-progress"
 import { Image } from "react-native-elements"
+import Spinner from "react-native-loading-spinner-overlay"
 
 import colors from "../constants/color"
 import * as Authentication from "../api/auth"
@@ -13,6 +14,7 @@ const Home = () => {
   const [expPercentage, setExpPercentage] = useState()
   const [prevRun, setPrevRun] = useState([])
   const [username, setUsername] = useState()
+	const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     Authentication.setOnAuthStateChanged((user) => {
@@ -26,6 +28,7 @@ const Home = () => {
         const run = snapshot.child("runningLogs")
         const numberOfRuns = run.child("numberOfRuns").val()
         setPrevRun(run.child("history/" + numberOfRuns).val())
+				setLoading(false)
       })
     }, (user) => {
       console.log("no user")
@@ -34,6 +37,13 @@ const Home = () => {
 
   return (
     <View style={styles.container}>
+			<Spinner 
+				visible={loading}
+				textContent={"Loading contents..."}
+				overlayColor="rgba(94, 94, 94, 0.8)"
+				textStyle={{
+					color: "white"
+				}}/>
       <View style={styles.imageContainer}>
         <Image
           source={require("../assets/archer.png")}

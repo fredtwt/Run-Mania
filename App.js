@@ -1,9 +1,10 @@
 import "react-native-gesture-handler"
-import React from 'react'
+import React, { useState } from 'react'
 import { LogBox, StyleSheet } from 'react-native'
 import { NavigationContainer } from "@react-navigation/native"
 
 import RootStackScreen from "./navigation/RootStackScreen"
+import Ranking from "./screens/Ranking"
 
 LogBox.ignoreAllLogs()
 
@@ -23,3 +24,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+/**
+		*/

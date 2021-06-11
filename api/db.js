@@ -88,15 +88,6 @@ export const addExperience = async ({userId, distance}, onSuccess, onError) => {
   }
 }
 
-export const expPercentage = async () => {
-    const stats = db.ref("users/" + userId + "/statistics")
-    const level = (await stats.child("level").get()).val()
-    const levelExp = level * 2 * 1000 // in meters
-    const currentExp = (await stats.child("exp").get()).val()
-
-    return Math.round(currentExp/levelExp)
-}
-
 export const userDetails = (id) => {
   return db.ref("users/" + id)
 }
