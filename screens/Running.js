@@ -223,7 +223,7 @@ const Running = ({ navigation }) => {
       </MapView>
       <View style={styles.sliderContainer}>
         <View style={{ marginTop: "2%", justifyContent: "space-between", height: "35%" }}>
-          <View style={{marginBottom: "1%"}}>
+          <View style={{marginBottom: "-1%"}}>
             <Text style={styles.dynamicText}>
               {distance + " km"}
             </Text>

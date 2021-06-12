@@ -1,13 +1,15 @@
 import * as React from "react";
 import * as Location from "expo-location"
 import { MaterialCommunityIcons } from "react-native-vector-icons";
-import { SafeAreaView, StyleSheet, View, Text, Dimensions, TouchableOpacity, Alert } from "react-native";
+import { AppState, SafeAreaView, StyleSheet, View, Text, Dimensions, Platform, Alert } from "react-native";
 import MapView from "react-native-maps";
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { CommonActions } from "@react-navigation/native"
 import { getDistance } from 'geolib';
-import moment from "moment"//npm install moment --save
+import moment from "moment"
 import Spinner from "react-native-loading-spinner-overlay"
+import { differenceInSeconds } from "date-fns"
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
@@ -23,7 +25,7 @@ const Running2 = ({ route, navigation }) => {
 	const [weight, setWeight] = React.useState(0)
 	const [progress, setProgress] = React.useState(0)
 	const [duration, setDuration] = React.useState(0)
-	const [isPaused, setIsPaused] = React.useState(true)
+	const [isPaused, setIsPaused] = React.useState(false)
 	const [date, setDate] = React.useState(new Date())
 	const [coveredDistance, setCoveredDistance] = React.useState(0)
 	const [routeCoordinates, setRouteCoordinates] = React.useState([{ latitude: origin.latitude, longitude: origin.longitude }])
@@ -36,6 +38,16 @@ const Running2 = ({ route, navigation }) => {
 		longitudeDelta: 0.001,
 		error: null
 	})
+	const appState = React.useRef(AppState.currentState);
+  // const [appStateVisible, setAppStateVisible] = React.useState(appState.current);
+  // const [elapsed, setElapsed] = React.useState(0)
+
+	React.useEffect(() => {
+    AppState.addEventListener("change", _handleAppStateChange);
+    return () => {
+      AppState.removeEventListener("change", _handleAppStateChange);
+     };
+  }, []);
 
 	React.useEffect(() => {
 		Location.installWebGeolocationPolyfill()
@@ -48,6 +60,7 @@ const Running2 = ({ route, navigation }) => {
 				latitude: pos.coords.latitude,
 				longitude: pos.coords.longitude,
 			})
+			console.log("moving")
 
 			const animateCamera = () => {
 				map.animateCamera({
@@ -56,8 +69,8 @@ const Running2 = ({ route, navigation }) => {
 						longitude: pos.coords.longitude
 					},
 					pitch: 45,
-					heading: 45,
-					altitude: 500,
+					heading: 0,
+					altitude: 0,
 					zoom: 20
 				}, { duration: 750 })
 			}
@@ -68,7 +81,6 @@ const Running2 = ({ route, navigation }) => {
 
 			setRouteCoordinates(oldstate => [...oldstate,
 			{ latitude: pos.coords.latitude, longitude: pos.coords.longitude }])
-
 		},
 			error => {
 				setUserLocation({
@@ -82,7 +94,7 @@ const Running2 = ({ route, navigation }) => {
 			if (isPaused) {
 				setDuration(duration => duration)
 			} else {
-				const percentage = parseFloat((coveredDistance / (generatedDistance * 1000)).toFixed(2))
+				const percentage = parseFloat((coveredDistance / (generatedDistance * 10)).toFixed(2))
 				setProgress(percentage)
 				setDuration(duration => duration + 1)
 			}
@@ -104,7 +116,6 @@ const Running2 = ({ route, navigation }) => {
 			(error) => {
 				console.log(error)
 			})
-
 			setLoading(false)
 		return () => {
 			clearInterval(interval)
@@ -139,6 +150,49 @@ const Running2 = ({ route, navigation }) => {
 		const secs = ((pace - Math.floor(pace)) * 60).toFixed(0)
 		return mins + ":" + (secs < 10 ? "0" + secs : secs) + " min/km"
 	}
+
+	const getElapsedTime = async () => {
+    try {
+      const startTime = await AsyncStorage.getItem("@start_time")
+      const now = new Date();
+      const diff = differenceInSeconds(now, Date.parse(startTime));
+      // setElapsed(diff)
+      return diff
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  const recordStartTime = async () => {
+    try {
+      const now = new Date();
+      await AsyncStorage.setItem("@start_time", now.toISOString());
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+	const _handleAppStateChange = async (nextAppState) => {
+    if (Platform.OS == 'ios') {
+      if (appState.current.match(/background/) && nextAppState === "active") {
+        const elapsed = await getElapsedTime();
+        setDuration(duration => duration + elapsed)
+        console.log("ios inactive/background -> active") 
+      }
+    } else {
+      if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+        const elapsed = await getElapsedTime();
+        setDuration(duration => duration + elapsed)
+        console.log("android inactive/background -> active")
+        }
+    }
+    if (appState.current.match(/inactive|active/) && nextAppState === "background") {
+      recordStartTime();
+      console.log("AppState should be inactive/active: ", appState.current);
+    }
+    appState.current = nextAppState;
+    console.log("AppState", appState.current)
+  };
 
 	const endRun = () => {
 		Database.addRun({
@@ -199,7 +253,7 @@ const Running2 = ({ route, navigation }) => {
 						latitude: userLocation.latitude,
 						longitude: userLocation.longitude
 					},
-					pitch: 60,
+					pitch: 45,
 					heading: 0,
 					altitude: 0,
 					zoom: 20,

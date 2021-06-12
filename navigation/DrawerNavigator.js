@@ -12,6 +12,7 @@ import RunningLogs from "../screens/RunningLogs"
 import Running2 from "../screens/Running2"
 import Running3 from "../screens/Running3"
 import Login from "../screens/Login"
+import Ranking from "../screens/Ranking"
 
 import color from "../constants/color"
 
@@ -27,6 +28,12 @@ const SettingsScreen = ({ navigation }) => {
 const RunningLogsScreen = ({ navigation }) => {
   return (
     <MainStackScreen name="RunningLogs" component={RunningLogs} headerTitle="Running Logs" backgroundColor={color.logsAccent} onPress={() => navigation.openDrawer()} />
+  )
+}
+
+const LeaderboardScreen = ({ navigation }) => {
+  return (
+    <MainStackScreen name="Leaderboard" component={Ranking} headerTitle="Leaderboard" backgroundColor={color.logsAccent} onPress={() => navigation.openDrawer()} />
   )
 }
 
@@ -93,6 +100,7 @@ const DrawerContent = (props) => {
               />
             )}
             label="Leaderboard"
+						onPress={() => props.navigation.navigate("Leaderboard")}
           />
           <DrawerItem
             icon={({ color, size }) => (
@@ -179,6 +187,7 @@ const DrawerNavigator = ({ navigation }) => {
       <DrawerNav.Screen name="Running2" component={Running2} />
       <DrawerNav.Screen name="Running3" component={Running3} />
       <DrawerNav.Screen name="RunningLogs" component={RunningLogsScreen} />
+      <DrawerNav.Screen name="Leaderboard" component={LeaderboardScreen} />
       <DrawerNav.Screen name="Settings" component={SettingsScreen} />
       <DrawerNav.Screen name="Login" component={Login} />
     </DrawerNav.Navigator>

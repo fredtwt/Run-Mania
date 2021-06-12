@@ -1,19 +1,43 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { View, StyleSheet } from "react-native"
 import LeaderBoard from "react-native-leaderboard"
 
 import color from "../constants/color"
+import * as Authentication from "../api/auth"
+import * as Database from "../api/db"
 
 const Ranking = () => {
 	const [data, setData] = useState([])
-	
+	const [loading, setLoading] = useState(true)
+
+	useEffect(() => {
+		Database.db.ref("users/").on("value", (snapshot) => {
+			snapshot.forEach((user) => {
+				
+				setData(prevData => [...prevData, {
+					username: user.val().username,
+					totalDistanceRan: user.child("runningLogs/totalDistanceRan").val()
+				}])
+			})
+		})
+		return () => {
+			setData([])
+		}
+	}, [])
+
+
 	return (
 		<View style={styles.container}>
-			<LeaderBoard
-				data={data}
-				containerStyle={styles.leaderboardContainer}
-				sortBy="highScore"
-				labelBy="userName" />
+			<View style={styles.headerContainer}>
+
+			</View>
+			<View style={styles.leaderboardContainer}>
+				<LeaderBoard
+					data={data}
+					evenRowColor="#edfcf9"
+					sortBy="totalDistanceRan"
+					labelBy="username" />
+			</View>
 		</View>
 	)
 }
@@ -24,9 +48,11 @@ const styles = StyleSheet.create({
 		backgroundColor: color.background,
 		alignItems: "center"
 	},
+	headerContainer: {
+		flex: 1
+	},
 	leaderboardContainer: {
-		flex: 1,
-		marginTop: 50,
+		flex: 2,
 		backgroundColor: color.background,
 
 	}

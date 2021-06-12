@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "runmania-app",
+    "name": "RunMania",
     "slug": "runmania-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,10 +17,18 @@
       "**/*"
     ],
     "ios": {
+			"config":{
+				"googleMapsApiKey": "AIzaSyAXeAwwq0rgH0lcOvA-sObvDYrCqsFR7sM "
+			},
       "supportsTablet": true,
       "bundleIdentifier": "com.rubbercoin.runmaniaapp"
     },
     "android": {
+			"config": {
+				"googleMaps": {
+					"apiKey": "AIzaSyBgwCZh1HqPO1k0c4w-7hrZDEXTAhlJbL8"	
+				}
+			},
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
