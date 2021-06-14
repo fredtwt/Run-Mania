@@ -7,6 +7,8 @@ import Slider from '@react-native-community/slider';
 import { CommonActions } from "@react-navigation/native"
 import randomLocation from 'random-location';
 import Spinner from "react-native-loading-spinner-overlay"
+import * as IntentLauncher from 'expo-intent-launcher' //expo install expo-intent-launcher
+import * as Linking from 'expo-linking'; //expo install expo-linking
 
 import ColorButton from "../presentational/ColorButton"
 import color from "../constants/color"
@@ -22,6 +24,8 @@ const Running = ({ navigation }) => {
     longitudeDelta: 0.003,
     error: null
   })
+	const [change, setChange] = React.useState(false)
+	const [permissions, setPermissions] = React.useState(false)
 	const [loading, setLoading] = React.useState(true)
   const [distance, setDistance] = React.useState(1)
   const [generatedDistance, setGeneratedDistance] = React.useState(0)
@@ -36,6 +40,17 @@ const Running = ({ navigation }) => {
   const maxDistance = 20;
 
   const addWaypoint = (newWaypoint) => setWaypoints(state => [...state, newWaypoint]);
+
+	const openSetting = () => {
+    if(Platform.OS=='ios'){
+      Linking.openURL('app-settings:')
+    }
+    else{
+      IntentLauncher.startActivityAsync(
+        IntentLauncher.ACTION_LOCATION_SOURCE_SETTINGS
+      );
+    }
+  }	
 
   const getRegionForCoordinates = (points) => {
     // points should be an array of { latitude: X, longitude: Y }
@@ -96,20 +111,28 @@ const Running = ({ navigation }) => {
   React.useEffect(() => {
     (async () => {
       const status_foreground = await Location.requestForegroundPermissionsAsync()
-      if (!status_foreground.granted) {
-        return Alert.alert("Location service is required", "Please grant permission to proceed")
-      }
       const status_background = await Location.requestBackgroundPermissionsAsync()
-      if (!status_background.granted) {
-        return Alert.alert('Background Service', "App requires background service to track your runs")
+
+			if (status_foreground.granted && status_background.granted) {
+				setPermissions(true)
+			} else if (!status_foreground.granted) {
+        return Alert.alert("Location service is required", "Please grant permission to proceed", [{text: "Change permissions", onPress: () => {
+					setChange(!change)
+					openSetting()
+				}}])
       }
-      console.log(status_foreground.granted, status_background.granted)
+      else if (!status_background.granted) {
+        return Alert.alert('Background Service', "App requires background service to track your runs", [{text: "Change permissions", onPress: () => {
+					setChange(!change)
+					openSetting()
+				}}])
+      }
       await Location.watchPositionAsync({
           accuracy: Location.Accuracy.Highest, distanceInterval: 1 
         }, (pos) => console.log());
       // console.log(location)
     })();
-  }, []);
+  }, [change]);
 
   React.useEffect(() => {
     Location.installWebGeolocationPolyfill()
@@ -289,7 +312,7 @@ const Running = ({ navigation }) => {
             width={150}
             height={60}
             disabled={!isButtonEnabled}
-            onPress={startRun}
+            onPress={() => permissions ? startRun() : Alert.alert("Background Service", "Please change your app location permissions", [{text: "Change Permissions", onPress: openSetting}])}
           />
         </View>
       </View>

@@ -240,7 +240,8 @@ const Running2 = ({ route, navigation }) => {
 			distance: coveredDistance,
 			pace: formatPace(calcAvgPace(coveredDistance, duration)),
 			calories: calcCalories(),
-			date: moment(date).utcOffset("+08:00").format("DD-MM-YYYY hh:mm a")
+			date: moment(date).utcOffset("+08:00").format("DD-MM-YYYY hh:mm a"),
+			route: routeCoordinates
 		},
 			(run) => { },
 			(error) => console.log(error))

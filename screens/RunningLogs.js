@@ -6,35 +6,41 @@ import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
 import color from "../constants/color"
 import ColorButton from "../presentational/ColorButton"
+import { TouchableOpacity } from "react-native"
 
 const deviceHeight = Dimensions.get("window").height
 
 
 const LogContainer = (props) => (
 	<View style={styles.container}>
-		<View style={styles.logContainer}>
-			<View style={{ flex: 1, flexDirection: "row", width: "95%" }}>
-				<Text style={[styles.infoText, { flex: 2, alignSelf: "flex-start", fontWeight: "bold", fontSize: deviceHeight >= 760 ? 22 : 20 }]}>{props.date}</Text>
+		<TouchableOpacity>
+			<View style={styles.logContainer}>
+				<View style={{ flex: 1, flexDirection: "row", width: "95%", borderBottomWidth: 2, borderColor: "black", paddingBottom: 5, marginBottom: 5 }}>
+					<View style={{ flex: 5, flexDirection: "row" }}>
+						<Text style={[styles.infoText, { alignSelf: "center", color: "black", fontWeight: "bold", fontSize: deviceHeight >= 760 ? 18 : 16 }]}>Run {props.number}: </Text>
+						<Text style={[styles.infoText, { alignSelf: "center", color: "white", fontStyle: "italic", fontSize: deviceHeight >= 760 ? 18 : 16 }]}>{props.date}</Text>
+					</View>
+				</View>
+				<View style={{ flex: 2, flexDirection: "row" }}>
+					<View style={styles.textContainer}>
+						<Text style={styles.infoText}>{props.distance}</Text>
+						<Text style={styles.helperText}>Distance</Text>
+					</View>
+					<View style={styles.textContainer}>
+						<Text style={styles.infoText}>{props.duration}</Text>
+						<Text style={styles.helperText}>Duration</Text>
+					</View>
+					<View style={styles.textContainer}>
+						<Text style={styles.infoText}>{props.pace}</Text>
+						<Text style={styles.helperText}>Avg Pace</Text>
+					</View>
+					<View style={styles.textContainer}>
+						<Text style={styles.infoText}>{props.calories}</Text>
+						<Text style={styles.helperText}>Calories</Text>
+					</View>
+				</View>
 			</View>
-			<View style={{ flex: 2, flexDirection: "row" }}>
-				<View style={styles.textContainer}>
-					<Text style={styles.infoText}>{props.distance}</Text>
-					<Text style={styles.helperText}>Distance</Text>
-				</View>
-				<View style={styles.textContainer}>
-					<Text style={styles.infoText}>{props.duration}</Text>
-					<Text style={styles.helperText}>Duration</Text>
-				</View>
-				<View style={styles.textContainer}>
-					<Text style={styles.infoText}>{props.pace}</Text>
-					<Text style={styles.helperText}>Avg Pace</Text>
-				</View>
-				<View style={styles.textContainer}>
-					<Text style={styles.infoText}>{props.calories}</Text>
-					<Text style={styles.helperText}>Calories</Text>
-				</View>
-			</View>
-		</View>
+		</TouchableOpacity>
 	</View>
 )
 
@@ -98,6 +104,7 @@ const RunningLogs = () => {
 				data={sort(logHistory)}
 				keyExtractor={item => item.key.toString()}
 				renderItem={useMemo(() => ({ item }) => <LogContainer
+					number={item.key}
 					date={item.date}
 					duration={item.time}
 					pace={item.pace}
@@ -121,13 +128,13 @@ const styles = StyleSheet.create({
 	},
 	logContainer: {
 		flexDirection: "column",
-		height: 120,
+		height: 100,
 		width: Dimensions.get("window").width * 0.95,
 		borderWidth: 2,
-		borderColor: "white",
-		borderRadius: 20,
+		borderColor: "black",
+		borderRadius: 10,
 		padding: 10,
-		margin: 10,
+		margin: 5,
 		backgroundColor: "rgba(100, 100, 100, 0.8)",
 		justifyContent: "center",
 		alignItems: "center"
@@ -135,12 +142,12 @@ const styles = StyleSheet.create({
 	infoText: {
 		color: "white",
 		alignSelf: "center",
-		fontSize: deviceHeight >= 760 ? 24 : 22
+		fontSize: deviceHeight >= 760 ? 20 : 18
 	},
 	helperText: {
-		color: "#FF9700",
+		color: "rgba(255, 160, 47, 0.8)",
 		alignSelf: "center",
-		fontSize: deviceHeight >= 760 ? 16 : 14
+		fontSize: deviceHeight >= 760 ? 14 : 12
 	},
 	textContainer: {
 		flex: 1,

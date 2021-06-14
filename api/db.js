@@ -34,7 +34,7 @@ export const createUser = async ({ id, username, email, gender, height, weight, 
   }
 }
 
-export const addRun = async ({ userId, time, distance, pace, calories, date }, onSuccess, onError) => {
+export const addRun = async ({ userId, time, distance, pace, calories, date, route}, onSuccess, onError) => {
   try {
     const run = db.ref("users/" + userId + "/runningLogs")
     const count = (await run.child("numberOfRuns").get()).val() + 1
@@ -44,7 +44,8 @@ export const addRun = async ({ userId, time, distance, pace, calories, date }, o
         time: time,
         distance: distance,
         pace: pace,
-        calories: calories
+        calories: calories,
+				route: route
       })
     await run.update({
       numberOfRuns: (await run.child("numberOfRuns").get()).val() + 1,
@@ -68,9 +69,11 @@ export const addExperience = async ({userId, distance}, onSuccess, onError) => {
     const currentExp = (await stats.child("exp").get()).val() + distance
 
     if (currentExp >= levelExp) {
+			var newLevel = currentExp % levelExp
+			var newExp = currentExp - (newLevel * levelExp)
       await stats.update({
-        level: level + 1,
-        exp: currentExp - levelExp,
+        level: level + newLevel,
+        exp: newExp,
         atk: atk + 10,
         def: def + 10,
         evd: evd + 10,

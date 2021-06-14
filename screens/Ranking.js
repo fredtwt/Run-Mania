@@ -55,7 +55,7 @@ const Ranking = () => {
 			setData([])
 			snapshot.forEach((user) => {
 				setData(prevData => [...prevData, {
-					username: user.val().username,
+					username: user.val().username + "  ---  Lvl " + user.child("statistics").val().level,
 					email: user.val().email,
 					totalDistanceRan: user.child("runningLogs/totalDistanceRan").val()
 				}])
