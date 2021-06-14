@@ -7,6 +7,8 @@ import { CommonActions } from "@react-navigation/native"
 
 import BlueButton from "../presentational/BlueButton"
 
+const deviceHeight = Dimensions.get("window").height
+
 const Running3 = ({ route, navigation }) => {
   const [coveredDistance, setCoveredDistance] = useState(route.params.distance)
   const [duration, setDuration] = useState(route.params.duration)
@@ -118,7 +120,7 @@ const Running3 = ({ route, navigation }) => {
       <View style={styles.runStats}>
         <View style={{alignItems: "center", marginTop: 5, marginBottom: 10}}>
           <Text style={styles.bigText}> Run completed!</Text>
-          <Text style={[styles.smallText, { fontSize: 20 }]}> {expLeft} km more to level up</Text>
+          <Text style={[styles.smallText, { fontSize: deviceHeight >= 770 ? 20 : 18}]}> {expLeft} km more to level up</Text>
           <Progress.Bar
             progress={expPercentage}
             style={{ marginTop: 5 }}
@@ -195,13 +197,13 @@ const styles = StyleSheet.create({
   bigText: {
     color: '#AEF94E',
     fontWeight: "bold",
-    fontSize: 40,
+    fontSize: deviceHeight >= 770 ? 40 : 35,
     textAlign: 'center'
   },
   smallText: {
     color: 'white',
     fontWeight: "bold",
-    fontSize: 24,
+    fontSize: deviceHeight >= 770 ? 24 : 20,
     textAlign: 'left',
     paddingBottom: 5
   },

@@ -10,6 +10,7 @@ import moment from "moment"
 import Spinner from "react-native-loading-spinner-overlay"
 import { differenceInSeconds } from "date-fns"
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as TaskManager from 'expo-task-manager';
 
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
@@ -20,9 +21,11 @@ const Running2 = ({ route, navigation }) => {
 	const generatedDistance = route.params.distance
 	const origin = route.params.origin
 
-	const [loading, setLoading] = React.useState(true)
+	const [loading, setLoading] = React.useState(false)
 	const [map, setMap] = React.useState(null)
-	const [weight, setWeight] = React.useState(0)
+	const weight = Database.userDetails(Authentication.getCurrentUserId()).child("weight").get().then(snapshot => {
+		return snapshot.val()
+	})
 	const [progress, setProgress] = React.useState(0)
 	const [duration, setDuration] = React.useState(0)
 	const [isPaused, setIsPaused] = React.useState(false)
@@ -38,58 +41,97 @@ const Running2 = ({ route, navigation }) => {
 		longitudeDelta: 0.001,
 		error: null
 	})
+	const [watcher, setWatcher] = React.useState(null);
 	const appState = React.useRef(AppState.currentState);
-  // const [appStateVisible, setAppStateVisible] = React.useState(appState.current);
-  // const [elapsed, setElapsed] = React.useState(0)
+
+	const LOCATION_TRACKING = 'location-tracking';
+
+	const startLocationTracking = async () => {
+		await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
+			accuracy: Location.Accuracy.Highest,
+			distanceInterval: 0,
+		});
+		const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+			LOCATION_TRACKING
+		);
+		console.log('tracking: ', hasStarted);
+	};
+
+	const stopLocationTracking = async () => {
+		await Location.stopLocationUpdatesAsync(LOCATION_TRACKING);
+		console.log('tracking: ', hasStarted);
+	}
+
+
+	React.useEffect(() => { // app state
+		AppState.addEventListener("change", _handleAppStateChange);
+		return () => {
+			AppState.removeEventListener("change", _handleAppStateChange);
+		};
+	}, []);
 
 	React.useEffect(() => {
-    AppState.addEventListener("change", _handleAppStateChange);
-    return () => {
-      AppState.removeEventListener("change", _handleAppStateChange);
-     };
-  }, []);
+		console.log("mount")
+		if (isPaused) {
+			return;
+		}
+		(() => {
+			Location.watchPositionAsync({
+				accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 1
+			}, (pos) => {
+				setRouteCoordinates(prev => {
+					setCoveredDistance((prevDist) => {
+						if (prev.length == 0) { return 0 }
+						if (isPaused) { return prevDist }
+						const lastCoord = prev[prev.length - 1];
+						return (prevDist + getDistance(lastCoord,
+							{ latitude: pos.coords.latitude, longitude: pos.coords.longitude }) / 2)
+					})
+					return [...prev, { latitude: pos.coords.latitude, longitude: pos.coords.longitude }]
+				})
 
-	React.useEffect(() => {
-		Location.installWebGeolocationPolyfill()
-		const watchID = navigator.geolocation.watchPosition(pos => {
-			if (!isPaused) {
-				setCoveredDistance(coveredDistance + getDistance(routeCoordinates[routeCoordinates.length - 1], pos.coords))
-			}
-			setUserLocation({
-				...userLocation,
-				latitude: pos.coords.latitude,
-				longitude: pos.coords.longitude,
-			})
-			console.log("moving")
-
-			const animateCamera = () => {
-				map.animateCamera({
-					center: {
-						latitude: pos.coords.latitude,
-						longitude: pos.coords.longitude
-					},
-					pitch: 45,
-					heading: 0,
-					altitude: 0,
-					zoom: 20
-				}, { duration: 750 })
-			}
-
-			if (map != null) {
-				animateCamera()
-			}
-
-			setRouteCoordinates(oldstate => [...oldstate,
-			{ latitude: pos.coords.latitude, longitude: pos.coords.longitude }])
-		},
-			error => {
 				setUserLocation({
 					...userLocation,
-					error: error.message
+					latitude: pos.coords.latitude,
+					longitude: pos.coords.longitude,
 				})
-			},
-		)
 
+				const animateCamera = () => {
+					map.animateCamera({
+						center: {
+							latitude: pos.coords.latitude,
+							longitude: pos.coords.longitude
+						},
+						pitch: 45,
+						heading: 0,
+						altitude: 0,
+						zoom: 20
+					}, { duration: 750 })
+				}
+
+				if (map != null) {
+					animateCamera()
+				}
+
+			},
+				error => {
+					setUserLocation({
+						...userLocation,
+						error: error.message
+					})
+				}).then((locationWatcher) => {
+					setWatcher(locationWatcher);
+				}).catch((err) => {
+					console.log(err)
+				})
+		})()
+
+		return () => {
+			console.log("unmounted")
+		}
+	}, [isPaused]);
+
+	React.useEffect(() => { // timer, pace
 		const interval = setInterval(() => {
 			if (isPaused) {
 				setDuration(duration => duration)
@@ -98,33 +140,23 @@ const Running2 = ({ route, navigation }) => {
 				setProgress(percentage)
 				setDuration(duration => duration + 1)
 			}
-			if (duration % 10 == 5 && coveredDistance != 0) {
+			if (duration % 5 == 0 && coveredDistance != 0) {
 				//calc pace
 				const difference = coveredDistance - prevDistance
-				const currentPace = parseFloat(((1000 / 60) / (difference / 5)).toFixed(2))
-				console.log(currentPace)
+				const currentPace = difference == 0 ? 0 : parseFloat(((1000 / 60) / (difference / 5)).toFixed(2))
+				console.log(difference, currentPace)
 				setPace(currentPace)
 				setPrevDistance(coveredDistance)
 			}
 		}, 1000)
 
-		Authentication.setOnAuthStateChanged((user) => {
-			Database.userDetails(user.uid).on("value", (snapshot) => {
-				setWeight(snapshot.val().weight)
-			})
-		},
-			(error) => {
-				console.log(error)
-			})
-			setLoading(false)
 		return () => {
 			clearInterval(interval)
-			navigator.geolocation.clearWatch(watchID)
 		}
 	}, [isPaused, duration]);
 
 	const calcCalories = () => {
-		return 24.5 * weight / 200 * (duration / 60)
+		return coveredDistance <= 0 ? 0 : 24.5 * weight / 200 * (duration / 60)
 	}
 
 	const calcAvgPace = (distance, duration) => {
@@ -144,58 +176,66 @@ const Running2 = ({ route, navigation }) => {
 
 	const formatPace = (pace) => {
 		if (pace == 0) {
-			return "0:00 min/km"
+			return "0:00"
 		}
 		const mins = Math.floor(pace)
 		const secs = ((pace - Math.floor(pace)) * 60).toFixed(0)
-		return mins + ":" + (secs < 10 ? "0" + secs : secs) + " min/km"
+		return mins + ":" + (secs < 10 ? "0" + secs : secs)
 	}
 
 	const getElapsedTime = async () => {
-    try {
-      const startTime = await AsyncStorage.getItem("@start_time")
-      const now = new Date();
-      const diff = differenceInSeconds(now, Date.parse(startTime));
-      // setElapsed(diff)
-      return diff
-    } catch (err) {
-      console.warn(err);
-    }
-  };
+		try {
+			const startTime = await AsyncStorage.getItem("@start_time")
+			const now = new Date();
+			const diff = differenceInSeconds(now, Date.parse(startTime));
+			// setElapsed(diff)
+			return diff
+		} catch (err) {
+			console.warn(err);
+		}
+	};
 
-  const recordStartTime = async () => {
-    try {
-      const now = new Date();
-      await AsyncStorage.setItem("@start_time", now.toISOString());
-    } catch (err) {
-      console.warn(err);
-    }
-  };
+	const recordStartTime = async () => {
+		try {
+			const now = new Date();
+			await AsyncStorage.setItem("@start_time", now.toISOString());
+		} catch (err) {
+			console.warn(err);
+		}
+	};
 
 	const _handleAppStateChange = async (nextAppState) => {
-    if (Platform.OS == 'ios') {
-      if (appState.current.match(/background/) && nextAppState === "active") {
-        const elapsed = await getElapsedTime();
-        setDuration(duration => duration + elapsed)
-        console.log("ios inactive/background -> active") 
-      }
-    } else {
-      if (appState.current.match(/inactive|background/) && nextAppState === "active") {
-        const elapsed = await getElapsedTime();
-        setDuration(duration => duration + elapsed)
-        console.log("android inactive/background -> active")
-        }
-    }
-    if (appState.current.match(/inactive|active/) && nextAppState === "background") {
-      recordStartTime();
-      console.log("AppState should be inactive/active: ", appState.current);
-    }
-    appState.current = nextAppState;
-    console.log("AppState", appState.current)
-  };
+		if (Platform.OS == 'ios') {
+			if (appState.current.match(/background/) && nextAppState === "active") {
+				const elapsed = await getElapsedTime();
+				setDuration(duration => duration + elapsed)
+				stopLocationTracking()
+				console.log("ios inactive/background -> active")
+			}
+		} else {
+			if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+				const elapsed = await getElapsedTime();
+				setDuration(duration => duration + elapsed)
+				stopLocationTracking()
+				console.log("android inactive/background -> active")
+			}
+		}
+		if (appState.current.match(/inactive|active/) && nextAppState === "background") {
+			recordStartTime();
+			startLocationTracking();
+			console.log("AppState should be inactive/active: ", appState.current);
+		}
+		appState.current = nextAppState;
+		console.log("AppState", appState.current)
+	};
 
-	const endRun = () => {
-		Database.addRun({
+	const endRun = async () => {
+		setLoading(true)
+		var level = 0
+		var current = 0
+
+		await watcher.remove()
+		await Database.addRun({
 			userId: Authentication.getCurrentUserId(),
 			time: formatDuration(duration),
 			distance: coveredDistance,
@@ -206,39 +246,67 @@ const Running2 = ({ route, navigation }) => {
 			(run) => { },
 			(error) => console.log(error))
 
-		Database.addExperience({
+		await Database.addExperience({
 			userId: Authentication.getCurrentUserId(),
 			distance: coveredDistance
 		},
 			(levelExp, currentExp) => {
-				navigation.dispatch(CommonActions.reset({
-					index: 0,
-					routes: [{
-						name: "Running3",
-						params: {
-							duration: duration,
-							distance: coveredDistance,
-							coordinates: routeCoordinates,
-							origin: origin,
-							calories: calcCalories(),
-							avgPace: calcAvgPace(coveredDistance, duration),
-							currentExp: currentExp,
-							levelExp: levelExp
-						}
-					}]
-				}))
+				level = levelExp
+				current = currentExp
 			},
 			(error) => {
 				console.log(error)
 			})
+
+		navigation.dispatch(CommonActions.reset({
+			index: 0,
+			routes: [{
+				name: "Running3",
+				params: {
+					duration: duration,
+					distance: coveredDistance,
+					coordinates: routeCoordinates,
+					origin: origin,
+					calories: calcCalories(),
+					avgPace: calcAvgPace(coveredDistance, duration),
+					currentExp: current,
+					levelExp: level
+				}
+			}]
+		}))
+		setLoading(false)
 	}
+
+	TaskManager.defineTask(LOCATION_TRACKING, async ({ data, error }) => {
+		if (error) {
+			console.log('LOCATION_TRACKING task ERROR:', error);
+			return;
+		}
+		if (data) {
+			const { locations } = data;
+			let lat = locations[0].coords.latitude;
+			let long = locations[0].coords.longitude;
+			const coords = { latitude: lat, longitude: long }
+
+			setRouteCoordinates(prev => {
+				setCoveredDistance((prevDist) => {
+					if (prev.length == 0) { return 0 }
+					if (isPaused) { return prevDist }
+					const lastCoord = prev[prev.length - 1];
+					return (prevDist + getDistance(lastCoord, coords) / 2)
+				})
+				return [...prev, coords]
+			})
+			console.log(`${new Date(Date.now()).toLocaleString()}: ${lat},${long}`);
+		}
+	});
 
 	return (
 		<SafeAreaView style={styles.container}>
 			<Spinner
 				visible={loading}
-				textContent={"Retrieving running details..."}
-				overlayColor="rgba(0, 0, 0, 0.8)"
+				textContent={"Ending run..."}
+				overlayColor="rgba(94, 94, 94, 0.8)"
 				textStyle={{
 					color: "white"
 				}} />
@@ -322,7 +390,7 @@ const Running2 = ({ route, navigation }) => {
 							<Text style={styles.text}> Pace:</Text>
 						</View>
 						<View style={styles.labelsContainer}>
-							<Text style={[styles.text, { color: "#E1E1E1" }]}> {formatPace(pace)} </Text>
+							<Text style={[styles.text, { color: "#E1E1E1" }]}> {formatPace(pace) + " min/km"} </Text>
 						</View>
 					</View>
 					<View style={styles.buttonsContainer}>
@@ -335,7 +403,7 @@ const Running2 = ({ route, navigation }) => {
 							backgroundColor="#4CA050"
 							width={170}
 							height={60}
-							onPress={() => setIsPaused(!isPaused)}
+							onPress={() => { setIsPaused(!isPaused), watcher.remove() }}
 						/>
 						<ColorButton
 							title="End"
@@ -346,12 +414,10 @@ const Running2 = ({ route, navigation }) => {
 							backgroundColor="#F54B4B"
 							width={170}
 							height={60}
-							loading={loading}
 							onPress={() => {
 								Alert.alert("End your run?", "",
 									[{ text: "No", onPress: () => console.log('resume run'), style: "destructive" },
-									{ text: "Yes", onPress: () => endRun() }]),
-									navigator.geolocation.stopObserving()
+									{ text: "Yes", onPress: () => endRun() }])
 							}}
 						/>
 					</View>

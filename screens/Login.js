@@ -23,6 +23,9 @@ const Login = ({ navigation }) => {
         index: 0,
         routes: [{
           name: "Main",
+					params: {
+						user: user.uid
+					}
         }]
       })),
       (error) => {

@@ -20,6 +20,15 @@
 			"config":{
 				"googleMapsApiKey": "AIzaSyAXeAwwq0rgH0lcOvA-sObvDYrCqsFR7sM "
 			},
+			"infoPlist": {
+        "UIBackgroundModes": [
+          "location"
+        ],
+        "NSLocationAlwaysUsageDescription": "App requires location service",
+        "NSLocationUsageDescription": "App requires location service",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "App requires location service to track your runs",
+        "NSLocationWhenInUseUsageDescription": "App requires location service to get user's location"
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.rubbercoin.runmaniaapp"
     },

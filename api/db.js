@@ -39,6 +39,7 @@ export const addRun = async ({ userId, time, distance, pace, calories, date }, o
     const run = db.ref("users/" + userId + "/runningLogs")
     const count = (await run.child("numberOfRuns").get()).val() + 1
       await run.child("history/" + count).set({
+				key: count,
         date: date,
         time: time,
         distance: distance,

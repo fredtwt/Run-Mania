@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Location from "expo-location"
-import { SafeAreaView, StyleSheet, View, Text, Dimensions } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { SafeAreaView, StyleSheet, View, Text, Dimensions, Alert } from "react-native";
+import MapView, { Marker , PROVIDER_GOOGLE } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions"
 import Slider from '@react-native-community/slider';
 import { CommonActions } from "@react-navigation/native"
@@ -92,6 +92,24 @@ const Running = ({ navigation }) => {
       addWaypoint(randomLocation.randomCircumferencePoint(origin, distance * 1000 / 5));
     }
   }
+  
+  React.useEffect(() => {
+    (async () => {
+      const status_foreground = await Location.requestForegroundPermissionsAsync()
+      if (!status_foreground.granted) {
+        return Alert.alert("Location service is required", "Please grant permission to proceed")
+      }
+      const status_background = await Location.requestBackgroundPermissionsAsync()
+      if (!status_background.granted) {
+        return Alert.alert('Background Service', "App requires background service to track your runs")
+      }
+      console.log(status_foreground.granted, status_background.granted)
+      await Location.watchPositionAsync({
+          accuracy: Location.Accuracy.Highest, distanceInterval: 1 
+        }, (pos) => console.log());
+      // console.log(location)
+    })();
+  }, []);
 
   React.useEffect(() => {
     Location.installWebGeolocationPolyfill()
@@ -128,7 +146,7 @@ const Running = ({ navigation }) => {
         ref={map => setMapView(map)}
 				loadingEnabled={true}
         style={[styles.map, { marginTop: resetLocationButton }]}
-        provider="google"
+        provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
         showsMyLocationButton={true}
         mapPadding={{bottom: Dimensions.get("window").height * 0.25}}

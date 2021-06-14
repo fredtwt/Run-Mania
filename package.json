@@ -70,7 +70,8 @@
     "react-navigation-stack": "^2.10.4",
     "react-navigator-geolocation": "^1.0.8",
     "react-progressbar-semicircle": "^1.2.1",
-    "react-providers": "^2.0.2"
+    "react-providers": "^2.0.2",
+    "expo-task-manager": "~9.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0"
