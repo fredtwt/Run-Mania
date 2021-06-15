@@ -42,9 +42,8 @@ const Running2 = ({ route, navigation }) => {
 	})
 	const [watcher, setWatcher] = React.useState(null);
 	const appState = React.useRef(AppState.currentState);
-
+	
 	const LOCATION_TRACKING = 'location-tracking';
-
 	const startLocationTracking = async () => {
     await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
       accuracy: Location.Accuracy.Highest,
