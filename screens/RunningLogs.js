@@ -9,7 +9,7 @@ import * as Authentication from "../api/auth"
 import color from "../constants/color"
 import ColorButton from "../presentational/ColorButton"
 import { TouchableOpacity } from "react-native"
-sss
+
 const deviceHeight = Dimensions.get("window").height
 
 const zoom = (distance) => {
