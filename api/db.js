@@ -34,7 +34,7 @@ export const createUser = async ({ id, username, email, gender, height, weight, 
   }
 }
 
-export const addRun = async ({ userId, time, distance, pace, calories, date, route}, onSuccess, onError) => {
+export const addRun = async ({ userId, time, distance, pace, calories, date, route, origin}, onSuccess, onError) => {
   try {
     const run = db.ref("users/" + userId + "/runningLogs")
     const count = (await run.child("numberOfRuns").get()).val() + 1
@@ -45,7 +45,8 @@ export const addRun = async ({ userId, time, distance, pace, calories, date, rou
         distance: distance,
         pace: pace,
         calories: calories,
-				route: route
+				route: route,
+				origin: origin
       })
     await run.update({
       numberOfRuns: (await run.child("numberOfRuns").get()).val() + 1,

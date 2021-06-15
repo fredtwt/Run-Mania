@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { View, StyleSheet, Text, Dimensions, FlatList } from "react-native"
+import { Overlay } from "react-native-elements"
+import MapView, { Marker } from "react-native-maps";
 import Spinner from "react-native-loading-spinner-overlay"
 
 import * as Database from "../api/db"
@@ -10,6 +12,49 @@ import { TouchableOpacity } from "react-native"
 
 const deviceHeight = Dimensions.get("window").height
 
+const zoom = (distance) => {
+	if (distance < 2) {
+		return 17.5
+	} else if (distance < 5) {
+		return 16
+	} else if (distance < 10) {
+		return 15
+	} else {
+		return 14
+	}
+}
+const getRegionForCoordinates = (points) => {
+	// points should be an array of { latitude: X, longitude: Y }
+	let minX, maxX, minY, maxY;
+
+	// init first point
+	((point) => {
+		minX = point.latitude;
+		maxX = point.latitude;
+		minY = point.longitude;
+		maxY = point.longitude;
+	})(points[0]);
+
+	// calculate rect
+	points.map((point) => {
+		minX = Math.min(minX, point.latitude);
+		maxX = Math.max(maxX, point.latitude);
+		minY = Math.min(minY, point.longitude);
+		maxY = Math.max(maxY, point.longitude);
+	});
+
+	const midX = (minX + maxX) / 2;
+	const midY = (minY + maxY) / 2;
+	const deltaX = (maxX - minX);
+	const deltaY = (maxY - minY);
+
+	return {
+		latitude: midX,
+		longitude: midY,
+		latitudeDelta: deltaX,
+		longitudeDelta: deltaY
+	};
+}
 
 const LogContainer = (props) => (
 	<View style={styles.container}>
@@ -49,6 +94,7 @@ const formatDistance = (dist) => dist < 1000
 	: (dist / 1000).toFixed(2) + " km"
 
 const RunningLogs = () => {
+	const [overlayVisible, setOverlayVisible] = useState(false)
 	const [logHistory, setLogHistory] = useState([])
 	const [pageSize, setPageSize] = useState(10)
 	const [last, setLast] = useState()
@@ -74,19 +120,6 @@ const RunningLogs = () => {
 		setLogHistory(logs)
 	}
 
-	const getMoreLogs = async () => {
-		if (!finalLog) {
-			setLoading(true)
-			await Database.userDetails(user).child("runningLogs/history/").orderByKey().limitToLast(pageSize).get().then((snapshot) => {
-				const moreLogs = snapshot.val().pop()
-				logHistory.concat(moreLogs)
-				setLast(snapshot.val()[1])
-				snapshot.val().length == 0 ? setFinalLog(true) : setFinalLog(false)
-			})
-		}
-		setLoading(false)
-	}
-
 	useEffect(() => {
 		getLogs()
 	}, [])
@@ -100,6 +133,32 @@ const RunningLogs = () => {
 				textStyle={{
 					color: "white"
 				}} />
+      <MapView
+        style={styles.map}
+        provider="google"
+        camera={{
+          center: {
+            latitude: finalRegion.latitude,
+            longitude: finalRegion.longitude
+          },
+          pitch: 20,
+          heading: 60,
+          altitude: 0,
+          zoom: zoom() 
+        }}
+        showsUserLocation={true}>
+        <Marker coordinate={origin} />
+        <MapView.Polyline // for tracking the run
+          coordinates={coordinates}
+          strokeWidth={5}
+          strokeColor="blue"
+        />
+      </MapView>
+			<Overlay
+				isVisible={true}
+				onBackdropPress={() => setOverlayVisible(false)}
+				overlayStyle={[styles.container, { flex: 0, borderWidth: 1, width: Dimensions.get("window").width * 0.8, height: Dimensions.get("window").height * 0.6 }]}>
+			</Overlay>
 			<FlatList
 				data={sort(logHistory)}
 				keyExtractor={item => item.key.toString()}
@@ -125,6 +184,8 @@ const styles = StyleSheet.create({
 		backgroundColor: "#2E2E2E",
 		justifyContent: "center",
 		alignItems: "center"
+	},
+	map: {
 	},
 	logContainer: {
 		flexDirection: "column",
