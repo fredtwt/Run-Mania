@@ -13,11 +13,12 @@ import { TouchableOpacity } from "react-native"
 const deviceHeight = Dimensions.get("window").height
 
 const zoom = (distance) => {
-	if (distance < 2) {
+	const newDistance = distance / 1000
+	if (newDistance < 2) {
 		return 17.5
-	} else if (distance < 5) {
+	} else if (newDistance < 5) {
 		return 16
-	} else if (distance < 10) {
+	} else if (newDistance < 10) {
 		return 15
 	} else {
 		return 14
@@ -83,8 +84,7 @@ const LogContainer = (props) => {
 							heading: 60,
 							altitude: 0,
 							zoom: zoom(props.zoom)
-						}}
-						showsUserLocation={true}>
+						}}>
 						<Marker coordinate={props.origin} />
 						<MapView.Polyline // for tracking the run
 							coordinates={props.coordinates}
@@ -178,7 +178,8 @@ const RunningLogs = () => {
 			<FlatList
 				data={sort(logHistory)}
 				keyExtractor={item => item.key.toString()}
-				renderItem={useMemo(() => ({ item }) =>
+				renderItem={useMemo(() => ({ item }) =>{
+					return(
 					<LogContainer
 						zoom={item.distance}
 						coordinates={item.route}
@@ -188,7 +189,7 @@ const RunningLogs = () => {
 						duration={item.time}
 						pace={item.pace}
 						distance={formatDistance(item.distance)}
-						calories={item.calories} />, [sort(logHistory)])
+						calories={item.calories} />)}, [sort(logHistory)])
 				} />
 		</View>
 	)
