@@ -58,7 +58,7 @@ const getRegionForCoordinates = (points) => {
 
 const LogContainer = (props) => (
 	<View style={styles.container}>
-		<TouchableOpacity>
+		<TouchableOpacity onPress={props.onPress}>
 			<View style={styles.logContainer}>
 				<View style={{ flex: 1, flexDirection: "row", width: "95%", borderBottomWidth: 2, borderColor: "black", paddingBottom: 5, marginBottom: 5 }}>
 					<View style={{ flex: 5, flexDirection: "row" }}>
@@ -96,6 +96,7 @@ const formatDistance = (dist) => dist < 1000
 const RunningLogs = () => {
 	const [overlayVisible, setOverlayVisible] = useState(false)
 	const [logHistory, setLogHistory] = useState([])
+	const [finalRegion, setFinalRegion] = useState(Object)
 	const [pageSize, setPageSize] = useState(10)
 	const [last, setLast] = useState()
 	const [finalLog, setFinalLog] = useState(false)
@@ -107,6 +108,10 @@ const RunningLogs = () => {
 			return item2.key - item1.key
 		})
 		return sorted
+	}
+
+	const toggleOverlay = () => {
+
 	}
 
 	const getLogs = async () => {
@@ -163,6 +168,8 @@ const RunningLogs = () => {
 				data={sort(logHistory)}
 				keyExtractor={item => item.key.toString()}
 				renderItem={useMemo(() => ({ item }) => <LogContainer
+					onPress={toggleOverlay}
+					coordinates={coordinates}
 					number={item.key}
 					date={item.date}
 					duration={item.time}
