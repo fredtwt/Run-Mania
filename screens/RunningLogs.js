@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
-import { View, StyleSheet, Text, Dimensions, FlatList } from "react-native"
-import { Overlay } from "react-native-elements"
+import { View, StyleSheet, Text, Dimensions, FlatList, Modal } from "react-native"
+import { BlurView } from 'expo-blur'; //expo install expo-blur
 import MapView, { Marker } from "react-native-maps";
 import Spinner from "react-native-loading-spinner-overlay"
 
@@ -56,50 +56,91 @@ const getRegionForCoordinates = (points) => {
 	};
 }
 
-const LogContainer = (props) => (
-	<View style={styles.container}>
-		<TouchableOpacity onPress={props.onPress}>
-			<View style={styles.logContainer}>
-				<View style={{ flex: 1, flexDirection: "row", width: "95%", borderBottomWidth: 2, borderColor: "black", paddingBottom: 5, marginBottom: 5 }}>
-					<View style={{ flex: 5, flexDirection: "row" }}>
-						<Text style={[styles.infoText, { alignSelf: "center", color: "black", fontWeight: "bold", fontSize: deviceHeight >= 760 ? 18 : 16 }]}>Run {props.number}: </Text>
-						<Text style={[styles.infoText, { alignSelf: "center", color: "white", fontStyle: "italic", fontSize: deviceHeight >= 760 ? 18 : 16 }]}>{props.date}</Text>
+const LogContainer = (props) => {
+	const [overlayVisible, setOverlayVisible] = useState(false)
+	var finalRegion = getRegionForCoordinates(props.coordinates)
+
+	return (
+		<View style={styles.container}>
+			<Modal
+				animationType="fade"
+				transparent={true}
+				visible={overlayVisible}
+				onRequestClose={() => setOverlayVisible(false)}>
+				<BlurView
+					intensity={130}
+					tint="dark"
+					style={styles.overlay}>
+					<MapView
+						style={styles.map}
+						provider="google"
+						camera={{
+							center: {
+								latitude: finalRegion.latitude,
+								longitude: finalRegion.longitude
+							},
+							pitch: 20,
+							heading: 60,
+							altitude: 0,
+							zoom: zoom(props.zoom)
+						}}
+						showsUserLocation={true}>
+						<Marker coordinate={props.origin} />
+						<MapView.Polyline // for tracking the run
+							coordinates={props.coordinates}
+							strokeWidth={5}
+							strokeColor="blue"
+						/>
+					</MapView>
+					<ColorButton
+						containerStyle={{
+							marginTop: 30
+						}}
+						onPress={() => setOverlayVisible(false)}
+						title="Return"
+						backgroundColor="#2D883F"
+						height={60}
+						width={150} />
+				</BlurView>
+			</Modal>
+			<TouchableOpacity onPress={() => setOverlayVisible(true)}>
+				<View style={styles.logContainer}>
+					<View style={{ flex: 1, flexDirection: "row", width: "95%", borderBottomWidth: 2, borderColor: "black", paddingBottom: 5, marginBottom: 5 }}>
+						<View style={{ flex: 5, flexDirection: "row" }}>
+							<Text style={[styles.infoText, { alignSelf: "center", color: "black", fontWeight: "bold", fontSize: deviceHeight >= 760 ? 18 : 16 }]}>Run {props.number}: </Text>
+							<Text style={[styles.infoText, { alignSelf: "center", color: "white", fontStyle: "italic", fontSize: deviceHeight >= 760 ? 18 : 16 }]}>{props.date}</Text>
+						</View>
+					</View>
+					<View style={{ flex: 2, flexDirection: "row" }}>
+						<View style={styles.textContainer}>
+							<Text style={styles.infoText}>{props.distance}</Text>
+							<Text style={styles.helperText}>Distance</Text>
+						</View>
+						<View style={styles.textContainer}>
+							<Text style={styles.infoText}>{props.duration}</Text>
+							<Text style={styles.helperText}>Duration</Text>
+						</View>
+						<View style={styles.textContainer}>
+							<Text style={styles.infoText}>{props.pace}</Text>
+							<Text style={styles.helperText}>Avg Pace</Text>
+						</View>
+						<View style={styles.textContainer}>
+							<Text style={styles.infoText}>{props.calories}</Text>
+							<Text style={styles.helperText}>Calories</Text>
+						</View>
 					</View>
 				</View>
-				<View style={{ flex: 2, flexDirection: "row" }}>
-					<View style={styles.textContainer}>
-						<Text style={styles.infoText}>{props.distance}</Text>
-						<Text style={styles.helperText}>Distance</Text>
-					</View>
-					<View style={styles.textContainer}>
-						<Text style={styles.infoText}>{props.duration}</Text>
-						<Text style={styles.helperText}>Duration</Text>
-					</View>
-					<View style={styles.textContainer}>
-						<Text style={styles.infoText}>{props.pace}</Text>
-						<Text style={styles.helperText}>Avg Pace</Text>
-					</View>
-					<View style={styles.textContainer}>
-						<Text style={styles.infoText}>{props.calories}</Text>
-						<Text style={styles.helperText}>Calories</Text>
-					</View>
-				</View>
-			</View>
-		</TouchableOpacity>
-	</View>
-)
+			</TouchableOpacity>
+		</View>
+	)
+}
 
 const formatDistance = (dist) => dist < 1000
 	? dist + " m"
 	: (dist / 1000).toFixed(2) + " km"
 
 const RunningLogs = () => {
-	const [overlayVisible, setOverlayVisible] = useState(false)
 	const [logHistory, setLogHistory] = useState([])
-	const [finalRegion, setFinalRegion] = useState(Object)
-	const [pageSize, setPageSize] = useState(10)
-	const [last, setLast] = useState()
-	const [finalLog, setFinalLog] = useState(false)
 	const [loading, setLoading] = useState(true)
 	const user = Authentication.getCurrentUserId()
 
@@ -108,10 +149,6 @@ const RunningLogs = () => {
 			return item2.key - item1.key
 		})
 		return sorted
-	}
-
-	const toggleOverlay = () => {
-
 	}
 
 	const getLogs = async () => {
@@ -138,48 +175,21 @@ const RunningLogs = () => {
 				textStyle={{
 					color: "white"
 				}} />
-      <MapView
-        style={styles.map}
-        provider="google"
-        camera={{
-          center: {
-            latitude: finalRegion.latitude,
-            longitude: finalRegion.longitude
-          },
-          pitch: 20,
-          heading: 60,
-          altitude: 0,
-          zoom: zoom() 
-        }}
-        showsUserLocation={true}>
-        <Marker coordinate={origin} />
-        <MapView.Polyline // for tracking the run
-          coordinates={coordinates}
-          strokeWidth={5}
-          strokeColor="blue"
-        />
-      </MapView>
-			<Overlay
-				isVisible={true}
-				onBackdropPress={() => setOverlayVisible(false)}
-				overlayStyle={[styles.container, { flex: 0, borderWidth: 1, width: Dimensions.get("window").width * 0.8, height: Dimensions.get("window").height * 0.6 }]}>
-			</Overlay>
 			<FlatList
 				data={sort(logHistory)}
 				keyExtractor={item => item.key.toString()}
-				renderItem={useMemo(() => ({ item }) => <LogContainer
-					onPress={toggleOverlay}
-					coordinates={coordinates}
-					number={item.key}
-					date={item.date}
-					duration={item.time}
-					pace={item.pace}
-					distance={formatDistance(item.distance)}
-					calories={item.calories} />, [sort(logHistory)])
+				renderItem={useMemo(() => ({ item }) =>
+					<LogContainer
+						zoom={item.distance}
+						coordinates={item.route}
+						origin={item.origin}
+						number={item.key}
+						date={item.date}
+						duration={item.time}
+						pace={item.pace}
+						distance={formatDistance(item.distance)}
+						calories={item.calories} />, [sort(logHistory)])
 				} />
-			<View style={{ flex: 1 }}>
-
-			</View>
 		</View>
 	)
 }
@@ -193,6 +203,22 @@ const styles = StyleSheet.create({
 		alignItems: "center"
 	},
 	map: {
+		height: 410,
+		width: 330,
+	},
+	overlay: {
+		flex: 1,
+		flexDirection: "column",
+		position: "absolute",
+		top: 0,
+		bottom: 0,
+		right: 0,
+		left: 0,
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: "transparent",
+		height: Dimensions.get("window").height,
+		width: Dimensions.get("window").width
 	},
 	logContainer: {
 		flexDirection: "column",

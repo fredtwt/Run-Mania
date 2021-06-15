@@ -122,7 +122,7 @@ const Running = ({ navigation }) => {
 				}}])
       }
       else if (!status_background.granted) {
-        return Alert.alert('Background Service', "App requires background service to track your runs", [{text: "Change permissions", onPress: () => {
+        return Alert.alert('Background Service', "App requires background service to track your runs, please set location access to 'All the time'", [{text: "Change permissions", onPress: () => {
 					setChange(!change)
 					openSetting()
 				}}])

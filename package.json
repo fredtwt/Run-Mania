@@ -11,6 +11,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
     "@fortawesome/react-native-fontawesome": "^0.2.6",
     "@react-native-async-storage/async-storage": "^1.15.5",
+    "@react-native-community/blur": "^3.6.0",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/slider": "^3.0.3",
@@ -28,9 +29,12 @@
     "expo": "~41.0.1",
     "expo-application": "~3.1.2",
     "expo-firebase-app": "^2.0.0",
+    "expo-intent-launcher": "~9.0.0",
+    "expo-linking": "~2.2.3",
     "expo-location": "~12.0.4",
     "expo-splash-screen": "~0.10.2",
     "expo-status-bar": "~1.0.4",
+    "expo-task-manager": "~9.1.0",
     "expo-updates": "~0.5.4",
     "firebase": "8.2.3",
     "geolib": "^3.3.1",
@@ -71,9 +75,7 @@
     "react-navigator-geolocation": "^1.0.8",
     "react-progressbar-semicircle": "^1.2.1",
     "react-providers": "^2.0.2",
-    "expo-task-manager": "~9.1.0",
-    "expo-intent-launcher": "~9.0.0",
-    "expo-linking": "~2.2.3"
+    "expo-blur": "~9.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0"
