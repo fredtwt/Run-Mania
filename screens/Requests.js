@@ -163,7 +163,6 @@ const Friends = () => {
 
 	useEffect(() => {
 		let mounted = true
-		console.log("mounted")
 		setLoading(true)
 		Database.userDetails(user).child("friends").on("value", snapshot => {
 			if (mounted) {
@@ -192,7 +191,6 @@ const Friends = () => {
 
 		return () => {
 			mounted = false
-			console.log("unmounted")
 		}
 	}, [])
 

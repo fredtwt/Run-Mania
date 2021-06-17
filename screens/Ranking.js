@@ -50,15 +50,18 @@ const Ranking = () => {
 	}
 
 	useEffect(() => {
-		console.log("mounted")
+		let mounted = true
+
 		Database.db.ref("users/").on("value", (snapshot) => {
 			setData([])
 			snapshot.forEach((user) => {
+				if (mounted) {
 				setData(prevData => [...prevData, {
 					username: user.val().username + "  ---  Lvl " + user.child("statistics").val().level,
 					email: user.val().email,
 					totalDistanceRan: user.child("runningLogs/totalDistanceRan").val()
 				}])
+				}
 			})
 		})
 
@@ -81,7 +84,7 @@ const Ranking = () => {
 		setLoading(false)
 
 		return (() => {
-			console.log("unmounted")
+			mounted = false
 		})
 	}, [])
 

@@ -7,7 +7,6 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { CommonActions } from "@react-navigation/native"
 import { getDistance } from 'geolib';
 import moment from "moment"
-import Spinner from "react-native-loading-spinner-overlay"
 import { differenceInSeconds } from "date-fns"
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as TaskManager from 'expo-task-manager';
@@ -21,7 +20,6 @@ const Running2 = ({ route, navigation }) => {
 	const generatedDistance = route.params.distance
 	const origin = route.params.origin
 
-	const [loading, setLoading] = React.useState(true)
 	const [map, setMap] = React.useState(null)
 	const [weight, setWeight] = React.useState(0)
 	const [progress, setProgress] = React.useState(0)
@@ -48,15 +46,10 @@ const Running2 = ({ route, navigation }) => {
 			accuracy: Location.Accuracy.Highest,
 			distanceInterval: 0,
 		});
-		const hasStarted = await Location.hasStartedLocationUpdatesAsync(
-			LOCATION_TRACKING
-		);
-		console.log('tracking: ', hasStarted);
 	};
 
 	const stopLocationTracking = async () => {
 		await Location.stopLocationUpdatesAsync(LOCATION_TRACKING);
-		console.log('tracking: ', hasStarted);
 	}
 
 	React.useEffect(() => { // app state
@@ -130,6 +123,7 @@ const Running2 = ({ route, navigation }) => {
 		})()
 
 		return () => {
+			mounted = false
 			console.log("unmounted")
 		}
 	}, [isPaused]);
@@ -148,7 +142,6 @@ const Running2 = ({ route, navigation }) => {
 				//calc pace
 				const difference = coveredDistance - prevDistance
 				const currentPace = difference == 0 ? 0 : parseFloat(((1000 / 60) / (difference / 5)).toFixed(2))
-				console.log(difference, currentPace)
 				setPace(currentPace)
 				setPrevDistance(coveredDistance)
 			}
@@ -165,7 +158,6 @@ const Running2 = ({ route, navigation }) => {
 				console.log(error)
 			})
 
-		setLoading(false)
 		return () => {
 			mounted = false
 			clearInterval(interval)
@@ -317,13 +309,6 @@ const Running2 = ({ route, navigation }) => {
 
 	return (
 		<SafeAreaView style={styles.container}>
-			<Spinner
-				visible={loading}
-				textContent={"Retrieving running details..."}
-				overlayColor="rgba(0, 0, 0, 0.8)"
-				textStyle={{
-					color: "white"
-				}} />
 			<MapView
 				ref={map => setMap(map)}
 				style={styles.map}
@@ -428,7 +413,6 @@ const Running2 = ({ route, navigation }) => {
 							backgroundColor="#F54B4B"
 							width={170}
 							height={60}
-							loading={loading}
 							onPress={() => {
 								Alert.alert("End your run?", "",
 									[{ text: "No", onPress: () => console.log('resume run'), style: "destructive" },

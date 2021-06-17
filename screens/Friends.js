@@ -161,12 +161,8 @@ const Friends = () => {
 			})
 	}
 
-	const getFriends = () => {
-	}
-
 	useEffect(() => {
 		let mounted = true
-		console.log("mounted")
 		setLoading(true)
 		Database.userDetails(user).child("friends").on("value", snapshot => {
 			if (mounted) {
@@ -195,7 +191,6 @@ const Friends = () => {
 
 		return () => {
 			mounted = false
-			console.log("unmounted")
 		}
 	}, [])
 
@@ -365,12 +360,12 @@ const styles = StyleSheet.create({
 	uidLabel: {
 		fontSize: 18,
 		fontWeight: "bold",
-		color: "orange"
+		color: "white"
 	},
 	uid: {
 		fontSize: 16,
 		fontStyle: "italic",
-		color: "orange"
+		color: "#9AD126"
 	},
 	headerText: {
 		alignSelf: "flex-start",
@@ -396,12 +391,12 @@ const styles = StyleSheet.create({
 	logContainer: {
 		flexDirection: "row",
 		height: 100,
-		borderWidth: 2,
+		borderWidth: 3,
 		borderColor: "black",
-		borderRadius: 10,
+		borderRadius: 40,
 		padding: 10,
 		margin: 5,
-		backgroundColor: "rgba(100, 100, 100, 0.8)",
+		backgroundColor: "rgba(194, 215, 150, 0.3)",
 		alignItems: "center"
 	},
 	button: {
@@ -431,7 +426,7 @@ const styles = StyleSheet.create({
 		height: 300,
 		width: 350,
 		borderRadius: 20,
-		backgroundColor: color.background,
+		backgroundColor: "rgb(65, 65, 65)",
 	},
 	label: {
 		color: "white",
