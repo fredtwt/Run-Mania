@@ -118,18 +118,18 @@ const Running = ({ navigation }) => {
 			if (status_foreground.granted && status_background.granted && mounted) {
 				setPermissions(true)
 			} else if (!status_foreground.granted && mounted) {
-				setChange(!change)
-				openSetting()
 				return Alert.alert("Location service is required", "Please grant permission to proceed", [{
 					text: "Change permissions", onPress: () => {
+						openSetting()
+						permission()
 					}
 				}])
 			}
 			else if (!status_background.granted && mounted) {
-				setChange(!change)
-				openSetting()
 				return Alert.alert('Background Service', "App requires background service to track your runs, please set location access to 'All the time'", [{
 					text: "Change permissions", onPress: () => {
+						openSetting()
+						permission()
 					}
 				}])
 			}

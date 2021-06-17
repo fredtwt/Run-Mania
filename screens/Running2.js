@@ -389,7 +389,7 @@ const Running2 = ({ route, navigation }) => {
 							<Text style={styles.text}> Pace:</Text>
 						</View>
 						<View style={styles.labelsContainer}>
-							<Text style={[styles.text, { color: "#E1E1E1" }]}> {formatPace(pace)} </Text>
+							<Text style={[styles.text, { fontSize: 25, color: "#E1E1E1" }]}> {formatPace(pace)} min/km</Text>
 						</View>
 					</View>
 					<View style={styles.buttonsContainer}>

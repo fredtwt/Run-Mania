@@ -69,13 +69,22 @@ const FriendContainer = (props) => {
 						</View>
 						<View style={{ flex: 1, flexDirection: "row", marginTop: 5, alignItems: "center", justifyContent: "space-around" }}>
 							<ColorButton
-								title="Close"
+								title="Unfriend"
 								titleStyle={{
 									fontSize: 14
 								}}
 								height={40}
 								width={100}
 								backgroundColor="#D13636"
+								onPress={props.unfriendRequest} />
+							<ColorButton
+								title="Close"
+								titleStyle={{
+									fontSize: 14
+								}}
+								height={40}
+								width={100}
+								backgroundColor="#3A7DB7"
 								onPress={() => setOverlayVisible(false)} />
 						</View>
 					</View>
@@ -161,31 +170,62 @@ const Friends = () => {
 			})
 	}
 
+	const unfriendRequest = (userId, friendId) => {
+		setOverlayVisible(false)
+
+		Alert.alert(null, "Are you sure?", [
+			{
+				text: "Yes",
+				onPress: () => {
+					setLoading(true)
+					Database.rejectFriendRequest({ currentId: userId, friendId: friendId },
+						(friend) => {
+							setLoading(false)
+							return Alert.alert("Unfriended successfully!")
+						},
+						(error) => {
+							setLoading(false)
+							console.log(error)
+							return Alert.alert("Unfriend unsuccessful!")
+						})
+
+				}
+			},
+			{
+				text: "No",
+				onPress: () => {
+					console.log("request cancelled")
+				},
+				style: "destructive"
+			}
+		])
+	}
+
 	useEffect(() => {
 		let mounted = true
 		setLoading(true)
 		Database.userDetails(user).child("friends").on("value", snapshot => {
 			if (mounted) {
-			setFriendsArray([])
-			snapshot.forEach(current => {
-				if (current.val().friend == true) {
-					Database.userDetails(current.val().uid).get().then(snapshot => {
-						setFriendsArray(prevData => [...prevData, {
-							uid: current.val().uid,
-							job: snapshot.val().job,
-							username: snapshot.val().username,
-							distance: snapshot.child("runningLogs").val().totalDistanceRan,
-							level: snapshot.child("statistics").val().level,
-							atk: snapshot.child("statistics").val().atk,
-							hp: snapshot.child("statistics").val().hp,
-							def: snapshot.child("statistics").val().def,
-							evd: snapshot.child("statistics").val().evd,
-							spd: snapshot.child("statistics").val().spd,
-						}])
-					})
-				}
-			})
-			setLoading(false)
+				setFriendsArray([])
+				snapshot.forEach(current => {
+					if (current.val().friend == true) {
+						Database.userDetails(current.val().uid).get().then(snapshot => {
+							setFriendsArray(prevData => [...prevData, {
+								uid: current.val().uid,
+								job: snapshot.val().job,
+								username: snapshot.val().username,
+								distance: snapshot.child("runningLogs").val().totalDistanceRan,
+								level: snapshot.child("statistics").val().level,
+								atk: snapshot.child("statistics").val().atk,
+								hp: snapshot.child("statistics").val().hp,
+								def: snapshot.child("statistics").val().def,
+								evd: snapshot.child("statistics").val().evd,
+								spd: snapshot.child("statistics").val().spd,
+							}])
+						})
+					}
+				})
+				setLoading(false)
 			}
 		})
 
@@ -315,6 +355,7 @@ const Friends = () => {
 					renderItem={useMemo(() => ({ item }) => {
 						return (
 							<FriendContainer
+								unfriendRequest={() => unfriendRequest(user, item.uid)}
 								job={item.job}
 								atk={item.atk}
 								hp={item.hp}
@@ -390,7 +431,7 @@ const styles = StyleSheet.create({
 	},
 	logContainer: {
 		flexDirection: "row",
-		height: 100,
+		height: 80,
 		borderWidth: 3,
 		borderColor: "black",
 		borderRadius: 40,
@@ -441,9 +482,9 @@ const styles = StyleSheet.create({
 	},
 	listImage: {
 		marginLeft: 5,
-		width: 70,
-		height: 70,
-		borderRadius: 70 / 2,
+		width: 60,
+		height: 60,
+		borderRadius: 60 / 2,
 		borderWidth: 3,
 		borderColor: "black"
 	},

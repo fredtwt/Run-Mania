@@ -19,12 +19,12 @@ const Running3 = ({ route, navigation }) => {
   const [levelExp, setLevelExp] = useState(route.params.levelExp)
   const [currentExp, setCurrentExp] = useState(route.params.currentExp)
 
-  const zoom = () => {
-    if (coveredDistance < 2) {
+  const zoom = (distance) => {
+    if (distance < 2) {
       return 17.5
-    } else if (coveredDistance < 5) {
+    } else if (distance < 5) {
       return 16
-    } else if (coveredDistance < 10) {
+    } else if (distance < 10) {
       return 15
     } else {
       return 14
@@ -107,7 +107,7 @@ const Running3 = ({ route, navigation }) => {
           pitch: 20,
           heading: 60,
           altitude: 0,
-          zoom: zoom() 
+          zoom: zoom(coveredDistance / 1000) 
         }}
         showsUserLocation={true}>
         <Marker coordinate={origin} />

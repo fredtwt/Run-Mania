@@ -181,7 +181,7 @@ const RunningLogs = () => {
 				renderItem={useMemo(() => ({ item }) => {
 					return (
 						<LogContainer
-							zoom={item.distance}
+							zoom={item.distance / 1000}
 							coordinates={item.route}
 							origin={item.origin}
 							number={item.key}
