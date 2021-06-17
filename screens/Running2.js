@@ -12,7 +12,6 @@ import { differenceInSeconds } from "date-fns"
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as TaskManager from 'expo-task-manager';
 
-
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
 import ColorButton from "../presentational/ColorButton"
@@ -46,86 +45,98 @@ const Running2 = ({ route, navigation }) => {
 	const LOCATION_TRACKING = 'location-tracking';
 
 	const startLocationTracking = async () => {
-    await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
-      accuracy: Location.Accuracy.Highest,
-      distanceInterval: 0,
-    });
-    const hasStarted = await Location.hasStartedLocationUpdatesAsync(
-      LOCATION_TRACKING
-    );
-    console.log('tracking: ', hasStarted);
-  };
+		await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
+			accuracy: Location.Accuracy.Highest,
+			distanceInterval: 0,
+		});
+		const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+			LOCATION_TRACKING
+		);
+		console.log('tracking: ', hasStarted);
+	};
 
 	const stopLocationTracking = async () => {
 		await Location.stopLocationUpdatesAsync(LOCATION_TRACKING);
-    console.log('tracking: ', hasStarted);
+		console.log('tracking: ', hasStarted);
 	}
 
-
 	React.useEffect(() => { // app state
-    AppState.addEventListener("change", _handleAppStateChange);
-    return () => {
-      AppState.removeEventListener("change", _handleAppStateChange);
-     };
-  }, []);
+		AppState.addEventListener("change", _handleAppStateChange);
+		return () => {
+			AppState.removeEventListener("change", _handleAppStateChange);
+		};
+	}, []);
 
 	React.useEffect(() => {
+		console.log("mounted")
+		let mounted = true
+
 		if (isPaused) {
 			return;
 		}
+
 		(() => {
 			Location.watchPositionAsync({
-			accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 1
+				accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 1
 			}, (pos) => {
-				setRouteCoordinates(prev => {
-					setCoveredDistance((prevDist) => {
+				if (mounted) {
+					setRouteCoordinates(prev => {
+						setCoveredDistance((prevDist) => {
 							if (prev.length == 0) { return 0 }
 							if (isPaused) { return prevDist }
 							const lastCoord = prev[prev.length - 1];
-							return (prevDist + getDistance(lastCoord, 
-								{ latitude: pos.coords.latitude, longitude: pos.coords.longitude }) / 2 )
+							return (prevDist + getDistance(lastCoord,
+								{ latitude: pos.coords.latitude, longitude: pos.coords.longitude }) / 2)
+						})
+						return [...prev, { latitude: pos.coords.latitude, longitude: pos.coords.longitude }]
 					})
-					return [...prev, { latitude: pos.coords.latitude, longitude: pos.coords.longitude }]
-				})
 
-			setUserLocation({
-				...userLocation,
-				latitude: pos.coords.latitude,
-				longitude: pos.coords.longitude,
-			})
-
-			const animateCamera = () => {
-				map.animateCamera({
-					center: {
+					setUserLocation({
+						...userLocation,
 						latitude: pos.coords.latitude,
-						longitude: pos.coords.longitude
-					},
-					pitch: 45,
-					heading: 0,
-					altitude: 0,
-					zoom: 20
-				}, { duration: 750 })
-			}
+						longitude: pos.coords.longitude,
+					})
+				}
 
-			if (map != null) {
-				animateCamera()
-			}
+				const animateCamera = () => {
+					map.animateCamera({
+						center: {
+							latitude: pos.coords.latitude,
+							longitude: pos.coords.longitude
+						},
+						pitch: 45,
+						heading: 0,
+						altitude: 0,
+						zoom: 20
+					}, { duration: 750 })
+				}
 
-		},
-			error => {
-				setUserLocation({
-					...userLocation,
-					error: error.message
+				if (map != null) {
+					animateCamera()
+				}
+
+			},
+				error => {
+					setUserLocation({
+						...userLocation,
+						error: error.message
+					})
+				}).then((locationWatcher) => {
+					if (mounted) {
+						setWatcher(locationWatcher);
+					}
+				}).catch((err) => {
+					console.log(err)
 				})
-			}).then((locationWatcher) => {
-				setWatcher(locationWatcher);
-			}).catch((err) => {
-				console.log(err)
-			})
 		})()
+
+		return () => {
+			console.log("unmounted")
+		}
 	}, [isPaused]);
 
-	React.useEffect(() =>	{ // timer, pace
+	React.useEffect(() => { // timer, pace
+		let mounted = true
 		const interval = setInterval(() => {
 			if (isPaused) {
 				setDuration(duration => duration)
@@ -146,14 +157,18 @@ const Running2 = ({ route, navigation }) => {
 
 		Authentication.setOnAuthStateChanged((user) => {
 			Database.userDetails(user.uid).on("value", (snapshot) => {
-				setWeight(snapshot.val().weight)
+				if (mounted) {
+					setWeight(snapshot.val().weight)
+				}
 			})
 		},
 			(error) => {
 				console.log(error)
 			})
-			setLoading(false)
+
+		setLoading(false)
 		return () => {
+			mounted = false
 			clearInterval(interval)
 		}
 	}, [isPaused, duration]);
@@ -183,57 +198,60 @@ const Running2 = ({ route, navigation }) => {
 		}
 		const mins = Math.floor(pace)
 		const secs = ((pace - Math.floor(pace)) * 60).toFixed(0)
-		return mins + ":" + (secs < 10 ? "0" + secs : secs) 
+		return mins + ":" + (secs < 10 ? "0" + secs : secs)
 	}
 
 	const getElapsedTime = async () => {
-    try {
-      const startTime = await AsyncStorage.getItem("@start_time")
-      const now = new Date();
-      const diff = differenceInSeconds(now, Date.parse(startTime));
-      // setElapsed(diff)
-      return diff
-    } catch (err) {
-      console.warn(err);
-    }
-  };
+		try {
+			const startTime = await AsyncStorage.getItem("@start_time")
+			const now = new Date();
+			const diff = differenceInSeconds(now, Date.parse(startTime));
+			// setElapsed(diff)
+			return diff
+		} catch (err) {
+			console.warn(err);
+		}
+	};
 
-  const recordStartTime = async () => {
-    try {
-      const now = new Date();
-      await AsyncStorage.setItem("@start_time", now.toISOString());
-    } catch (err) {
-      console.warn(err);
-    }
-  };
+	const recordStartTime = async () => {
+		try {
+			const now = new Date();
+			await AsyncStorage.setItem("@start_time", now.toISOString());
+		} catch (err) {
+			console.warn(err);
+		}
+	};
 
 	const _handleAppStateChange = async (nextAppState) => {
-    if (Platform.OS == 'ios') {
-      if (appState.current.match(/background/) && nextAppState === "active") {
-        const elapsed = await getElapsedTime();
-        setDuration(duration => duration + elapsed)
+		if (Platform.OS == 'ios') {
+			if (appState.current.match(/background/) && nextAppState === "active") {
+				const elapsed = await getElapsedTime();
+				setDuration(duration => duration + elapsed)
 				stopLocationTracking()
-        console.log("ios inactive/background -> active") 
-      }
-    } else {
-      if (appState.current.match(/inactive|background/) && nextAppState === "active") {
-        const elapsed = await getElapsedTime();
-        setDuration(duration => duration + elapsed)
+				console.log("ios inactive/background -> active")
+			}
+		} else {
+			if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+				const elapsed = await getElapsedTime();
+				setDuration(duration => duration + elapsed)
 				stopLocationTracking()
-        console.log("android inactive/background -> active")
-        }
-    }
-    if (appState.current.match(/inactive|active/) && nextAppState === "background") {
-      recordStartTime();
+				console.log("android inactive/background -> active")
+			}
+		}
+		if (appState.current.match(/inactive|active/) && nextAppState === "background") {
+			recordStartTime();
 			startLocationTracking();
-      console.log("AppState should be inactive/active: ", appState.current);
-    }
-    appState.current = nextAppState;
-    console.log("AppState", appState.current)
-  };
+			console.log("AppState should be inactive/active: ", appState.current);
+		}
+		appState.current = nextAppState;
+		console.log("AppState", appState.current)
+	};
 
 	const endRun = () => {
-		watcher.remove()
+		if (watcher != null) {
+			watcher.remove()
+		}
+
 		Database.addRun({
 			userId: Authentication.getCurrentUserId(),
 			time: formatDuration(duration),
@@ -287,12 +305,13 @@ const Running2 = ({ route, navigation }) => {
 
 			setRouteCoordinates(prev => {
 				setCoveredDistance((prevDist) => {
-						if (prev.length == 0) { return 0 }
-						if (isPaused) { return prevDist }
-						const lastCoord = prev[prev.length - 1];
-						return (prevDist + getDistance(lastCoord, coords) / 2)
+					if (prev.length == 0) { return 0 }
+					if (isPaused) { return prevDist }
+					const lastCoord = prev[prev.length - 1];
+					return (prevDist + getDistance(lastCoord, coords) / 2)
 				})
-				return [...prev, coords ]})
+				return [...prev, coords]
+			})
 			console.log(`${new Date(Date.now()).toLocaleString()}: ${lat},${long}`);
 		}
 	});
@@ -399,7 +418,7 @@ const Running2 = ({ route, navigation }) => {
 							backgroundColor="#4CA050"
 							width={170}
 							height={60}
-							onPress={() => {setIsPaused(!isPaused), watcher.remove()}}
+							onPress={() => { setIsPaused(!isPaused), watcher.remove() }}
 						/>
 						<ColorButton
 							title="End"

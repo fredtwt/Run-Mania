@@ -9,5 +9,7 @@ export default {
 	leaderboardAccent: "#00A1C8",
   settingsAccent: "grey",
   statsAccent: "#5EF7C6",
-  startAccent: "#639A66"
+  startAccent: "#639A66",
+	friendsAccent: "#A7AF33",
+	requestsAccent: "#337AAF"
 }

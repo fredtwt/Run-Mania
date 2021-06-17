@@ -12,6 +12,7 @@ const deviceWidth = Dimensions.get("window").width
 const deviceHeight = Dimensions.get("window").height
 
 const Home = () => {
+	const user = Authentication.getCurrentUserId()
 	const [userStatsArr, setUserStatsArr] = useState([])
 	const [expPercentage, setExpPercentage] = useState()
 	const [prevRun, setPrevRun] = useState([])
@@ -22,27 +23,20 @@ const Home = () => {
 		? dist + " m"
 		: (dist / 1000).toFixed(2) + " km"
 
-	const getUserDetails = () => {
-		Authentication.setOnAuthStateChanged((user) => {
-			Database.userDetails(user.uid).on("value", (snapshot) => {
-				setUserStatsArr(snapshot.child("statistics").val())
-				setUsername(snapshot.val().username)
-				const levelExp = snapshot.child("statistics").val().level * 2 * 1000
-				const currentExp = snapshot.child("statistics").val().exp
-				setExpPercentage(currentExp / levelExp)
-
-				const run = snapshot.child("runningLogs")
-				const numberOfRuns = run.child("numberOfRuns").val()
-				setPrevRun(run.child("history/" + numberOfRuns).val())
-				setLoading(false)
-			})
-		}, (user) => {
-			console.log("no user")
-		})
-	}
-
 	useEffect(() => {
-		getUserDetails()
+		Database.userDetails(user).on("value", (snapshot) => {
+			const stats = snapshot.child("statistics").val()
+			const levelExp = stats.level * 2 * 1000
+			const currentExp = stats.exp
+			const numberOfRuns = snapshot.child("runningLogs/numberOfRuns").val()
+			const run = snapshot.child("runningLogs/history/" + numberOfRuns).val()
+
+			setUserStatsArr(stats)
+			setUsername(snapshot.val().username)
+			setExpPercentage(currentExp / levelExp)
+			setPrevRun(run)
+			setLoading(false)
+		})
 	}, [])
 
 	return (
@@ -54,7 +48,7 @@ const Home = () => {
 				textStyle={{
 					color: "white"
 				}} />
-			<View style={{ flex: 2, height: deviceHeight * (2/3) }}>
+			<View style={{ flex: 2, height: deviceHeight * (2 / 3) }}>
 				<View style={styles.imageContainer}>
 					<Image
 						source={require("../assets/archer.png")}
@@ -111,14 +105,14 @@ const Home = () => {
 							<Text style={{ fontSize: deviceHeight >= 770 ? 12 : 10, color: "#BBBDBD", alignSelf: "center" }}>(MM:SS)</Text>
 						</View>
 						<View style={{ flex: 2 }}>
-							<Text style={{ fontSize: deviceHeight >= 770 ? 25 : 23, fontWeight: "bold", color: "white", alignSelf: "center" }}>{prevRun != null ? prevRun.pace + " min/km": "0:00 min/km"}</Text>
+							<Text style={{ fontSize: deviceHeight >= 770 ? 25 : 23, fontWeight: "bold", color: "white", alignSelf: "center" }}>{prevRun != null ? prevRun.pace + " min/km" : "0:00 min/km"}</Text>
 							<Text style={{ fontSize: deviceHeight >= 770 ? 14 : 12, color: "#BBBDBD", alignSelf: "center" }}>AVG PACE</Text>
 							<Text style={{ fontSize: deviceHeight >= 770 ? 12 : 10, color: "#BBBDBD", alignSelf: "center" }}></Text>
 						</View>
 						<View style={{ flex: 1 }}>
 							<Text style={{ fontSize: deviceHeight >= 770 ? 25 : 23, fontWeight: "bold", color: "white", alignSelf: "center" }}>{prevRun != null ? Math.round(prevRun.calories) : "0"}</Text>
 							<Text style={{ fontSize: deviceHeight >= 770 ? 14 : 12, color: "#BBBDBD", alignSelf: "center" }}>CALORIES</Text>
-							<Text style={{ fontSize: deviceHeight >= 770 ? 12: 10, color: "#BBBDBD", alignSelf: "center" }}>(kcal)</Text>
+							<Text style={{ fontSize: deviceHeight >= 770 ? 12 : 10, color: "#BBBDBD", alignSelf: "center" }}>(kcal)</Text>
 						</View>
 					</View>
 				</View>

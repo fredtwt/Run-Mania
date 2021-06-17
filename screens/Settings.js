@@ -279,7 +279,7 @@ const Settings = () => {
 							</Dialog>
 							<ColorButton
 								title={isEditing ? "Save" : "Edit Profile"}
-								titleStyle={{ fontSize: deviceHeight >= 760 ? 20 : 18 }}
+								titleStyle={{ fontSize: deviceHeight >= 760 ? 18 : 16 }}
 								backgroundColor={isEditing ? "#5BBD4C" : "#ED802B"}
 								loading={dialogVisible}
 								onPress={() => { isEditing ? setDialogVisible(true) : setIsEditing(true) }}
@@ -288,7 +288,7 @@ const Settings = () => {
 						</View>
 						<ColorButton
 							title={isEditing ? "Cancel" : "Change Password"}
-							titleStyle={{ fontSize: deviceHeight >= 760 ? 20 : 18 }}
+							titleStyle={{ fontSize: deviceHeight >= 760 ? 18 : 16 }}
 							backgroundColor={isEditing ? "#F7483D" : "#ED802B"}
 							onPress={() => { isEditing ? setIsEditing(false) : setChangePasswordVisible(true) }}
 							loading={changePasswordVisible}

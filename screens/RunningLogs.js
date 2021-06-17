@@ -178,23 +178,23 @@ const RunningLogs = () => {
 			<FlatList
 				data={sort(logHistory)}
 				keyExtractor={item => item.key.toString()}
-				renderItem={useMemo(() => ({ item }) =>{
-					return(
-					<LogContainer
-						zoom={item.distance}
-						coordinates={item.route}
-						origin={item.origin}
-						number={item.key}
-						date={item.date}
-						duration={item.time}
-						pace={item.pace}
-						distance={formatDistance(item.distance)}
-						calories={item.calories} />)}, [sort(logHistory)])
+				renderItem={useMemo(() => ({ item }) => {
+					return (
+						<LogContainer
+							zoom={item.distance}
+							coordinates={item.route}
+							origin={item.origin}
+							number={item.key}
+							date={item.date}
+							duration={item.time}
+							pace={item.pace}
+							distance={formatDistance(item.distance)}
+							calories={item.calories} />)
+				}, [sort(logHistory)])
 				} />
 		</View>
 	)
 }
-
 
 const styles = StyleSheet.create({
 	container: {

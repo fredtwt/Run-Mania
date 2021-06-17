@@ -13,12 +13,13 @@ import Running2 from "../screens/Running2"
 import Running3 from "../screens/Running3"
 import Login from "../screens/Login"
 import Ranking from "../screens/Ranking"
+import Friends from "../screens/Friends"
+import Requests from "../screens/Requests"
 
 import color from "../constants/color"
 
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
-import { CommonActions } from "@react-navigation/native"
 
 const SettingsScreen = ({ navigation }) => {
 	return (
@@ -30,6 +31,18 @@ const RunningLogsScreen = ({ route, navigation }) => {
 	const user = route.params.user
 	return (
 		<MainStackScreen user={user} name="RunningLogs" component={RunningLogs} headerTitle="Running Logs" backgroundColor={color.logsAccent} onPress={() => navigation.openDrawer()} />
+	)
+}
+
+const FriendsScreen = ({ navigation }) => {
+	return (
+		<MainStackScreen name="Friends" component={Friends} headerTitle="Friends" backgroundColor={color.friendsAccent} onPress={() => navigation.openDrawer()} />
+	)
+}
+
+const RequestsScreen = ({ navigation }) => {
+	return (
+		<MainStackScreen name="Requests" component={Requests} headerTitle="Friend Requests" backgroundColor={color.requestsAccent} onPress={() => navigation.openDrawer()} />
 	)
 }
 
@@ -94,6 +107,18 @@ const DrawerContent = (props) => {
 							/>
 						)}
 						label="Friends"
+						onPress={() => props.navigation.navigate("Friends")}
+					/>
+					<DrawerItem
+						icon={({ color, size }) => (
+							<Icon
+								name="account-plus-outline"
+								color={color}
+								size={size}
+							/>
+						)}
+						label="Friend Requests"
+						onPress={() => props.navigation.navigate("Requests")}
 					/>
 					<DrawerItem
 						icon={({ color, size }) => (
@@ -194,6 +219,8 @@ const DrawerNavigator = ({ route, navigation }) => {
 			<DrawerNav.Screen name="Running3" component={Running3} />
 			<DrawerNav.Screen name="RunningLogs" component={RunningLogsScreen} />
 			<DrawerNav.Screen name="Leaderboard" component={LeaderboardScreen} />
+			<DrawerNav.Screen name="Friends" component={FriendsScreen} />
+			<DrawerNav.Screen name="Requests" component={RequestsScreen} />
 			<DrawerNav.Screen name="Settings" component={SettingsScreen} />
 			<DrawerNav.Screen name="Login" component={Login} />
 		</DrawerNav.Navigator>
