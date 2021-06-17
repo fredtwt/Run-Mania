@@ -24,19 +24,25 @@ const Home = () => {
 		: (dist / 1000).toFixed(2) + " km"
 
 	useEffect(() => {
+		let mounted = true
 		Database.userDetails(user).on("value", (snapshot) => {
 			const stats = snapshot.child("statistics").val()
 			const levelExp = stats.level * 2 * 1000
 			const currentExp = stats.exp
 			const numberOfRuns = snapshot.child("runningLogs/numberOfRuns").val()
 			const run = snapshot.child("runningLogs/history/" + numberOfRuns).val()
-
-			setUserStatsArr(stats)
-			setUsername(snapshot.val().username)
-			setExpPercentage(currentExp / levelExp)
-			setPrevRun(run)
-			setLoading(false)
+			if (mounted) {
+				setUserStatsArr(stats)
+				setUsername(snapshot.val().username)
+				setExpPercentage(currentExp / levelExp)
+				setPrevRun(run)
+				setLoading(false)
+			}
 		})
+
+		return () => {
+			mounted = false
+		}
 	}, [])
 
 	return (

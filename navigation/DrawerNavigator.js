@@ -20,6 +20,7 @@ import color from "../constants/color"
 
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
+import { CommonActions } from "@react-navigation/native"
 
 const SettingsScreen = ({ navigation }) => {
 	return (
@@ -196,7 +197,12 @@ const DrawerNavigator = ({ route, navigation }) => {
 	const handleLogout = () => {
 		Authentication.signOut(
 			() => {
-				navigation.navigate("Login")
+				navigation.dispatch(CommonActions.reset({
+					index: 0,
+					routes: [{
+						name: "Login",
+					}]
+				}))
 				return Alert.alert(null, "You have successfully signed out!")
 			},
 			(error) => {
