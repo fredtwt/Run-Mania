@@ -18,6 +18,26 @@ const formatDistance = (dist) => dist < 1000
 	? dist + " m"
 	: (dist / 1000).toFixed(2) + " km"
 
+const getAvatar = (gender, job) => {
+	if (gender == "Male") {
+		if (job == "Archer") {
+			return require("../assets/avatars/male_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/male_mage.png")
+		} else {
+			return require("../assets/avatars/male_warrior.png")
+		}
+	} else {
+		if (job == "Archer") {
+			return require("../assets/avatars/female_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/female_mage.png")
+		} else {
+			return require("../assets/avatars/female_warrior.png")
+		}
+	}
+}
+
 const FriendContainer = (props) => {
 	const [overlayVisible, setOverlayVisible] = useState(false)
 
@@ -34,7 +54,7 @@ const FriendContainer = (props) => {
 				<View style={styles.overlayBackground}>
 					<View style={{ flex: 1, flexDirection: "row", paddingTop: 20, paddingLeft: 20, paddingBottom: 10, width: "100%" }}>
 						<Image
-							source={require("../assets/archer.png")}
+							source={getAvatar(props.gender, props.job)}
 							style={styles.image}
 							PlaceholderContent={<ActivityIndicator size="large" />} />
 						<View style={{ flexDirection: "column", paddingLeft: 10, justifyContent: "center" }}>
@@ -55,16 +75,16 @@ const FriendContainer = (props) => {
 								<Text style={styles.stats}>{props.atk}</Text>
 							</View>
 							<View>
+								<Text style={styles.statsHeader}>MAGIC:</Text>
+								<Text style={styles.stats}>{props.magic}</Text>
+							</View>
+							<View>
 								<Text style={styles.statsHeader}>DEF:</Text>
 								<Text style={styles.stats}>{props.def}</Text>
 							</View>
 							<View>
-								<Text style={styles.statsHeader}>EVD:</Text>
-								<Text style={styles.stats}>{props.evd}</Text>
-							</View>
-							<View>
-								<Text style={styles.statsHeader}>SPD:</Text>
-								<Text style={styles.stats}>{props.spd}</Text>
+								<Text style={styles.statsHeader}>MR:</Text>
+								<Text style={styles.stats}>{props.mr}</Text>
 							</View>
 						</View>
 						<View style={{ flex: 1, flexDirection: "row", marginTop: 5, alignItems: "center", justifyContent: "space-around" }}>
@@ -84,7 +104,7 @@ const FriendContainer = (props) => {
 			<TouchableOpacity onPress={() => setOverlayVisible(true)}>
 				<View style={styles.logContainer}>
 					<Image
-						source={require("../assets/archer.png")}
+						source={getAvatar(props.gender, props.job)}
 						style={styles.listImage}
 						PlaceholderContent={<ActivityIndicator size="large" />} />
 					<View style={{ flex: 1, flexDirection: "column" }}>
@@ -134,10 +154,10 @@ const Friends = () => {
 					}
 				})
 				setRequestsArray(updateArr)
-				return Alert.alert("Friend request accepted successfully!")
+				return Alert.alert(null, "Friend request accepted successfully!")
 			},
 			(error) => {
-				return Alert.alert("Accepting friend request unsuccessful!")
+				return Alert.alert(null, "Accepting friend request unsuccessful!")
 			})
 	}
 
@@ -151,14 +171,11 @@ const Friends = () => {
 					}
 				})
 				setRequestsArray(updateArr)
-				return Alert.alert("Friend request rejected successfully!")
+				return Alert.alert(null, "Friend request rejected successfully!")
 			},
 			(error) => {
-				return Alert.alert("Friend request rejection unsuccessful!")
+				return Alert.alert(null, "Friend request rejection unsuccessful!")
 			})
-	}
-
-	const getRequests = (mounted) => {
 	}
 
 	useEffect(() => {
@@ -179,8 +196,8 @@ const Friends = () => {
 								atk: snapshot.child("statistics").val().atk,
 								hp: snapshot.child("statistics").val().hp,
 								def: snapshot.child("statistics").val().def,
-								evd: snapshot.child("statistics").val().evd,
-								spd: snapshot.child("statistics").val().spd,
+								magic: snapshot.child("statistics").val().magic,
+								mr: snapshot.child("statistics").val().mr,
 							}])
 						})
 					}
@@ -203,6 +220,9 @@ const Friends = () => {
 				textStyle={{
 					color: "white"
 				}} />
+				<View style={styles.header}>
+					<Text style={styles.headerText}>List of requests:</Text>
+				</View>
 			<View style={styles.resultsContainer}>
 				<FlatList
 					data={requestsArray}
@@ -212,12 +232,13 @@ const Friends = () => {
 							<FriendContainer
 								rejectFriendRequest={() => rejectFriendRequest(user, item.uid)}
 								acceptFriendRequest={() => acceptFriendRequest(user, item.uid)}
+								gender={item.gender}
 								job={item.job}
 								atk={item.atk}
 								hp={item.hp}
 								def={item.def}
-								evd={item.evd}
-								spd={item.spd}
+								magic={item.magic}
+								mr={item.mr}
 								distance={item.distance}
 								username={item.username}
 								level={item.level} />
@@ -244,9 +265,9 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(80, 80, 80, 0.7)",
 		padding: 10,
 		top: 0,
-		height: 180,
+		height: 60,
 		borderColor: "black",
-		width: "100%"
+		width: deviceWidth 
 	},
 	footer: {
 		flexDirection: "row",
@@ -280,6 +301,8 @@ const styles = StyleSheet.create({
 	resultsContainer: {
 		flex: 1,
 		flexDirection: "column",
+		position: "absolute",
+		top: 70,
 		height: deviceHeight,
 		width: deviceWidth,
 		padding: 10
@@ -289,10 +312,10 @@ const styles = StyleSheet.create({
 		height: 100,
 		borderWidth: 2,
 		borderColor: "black",
-		borderRadius: 10,
+		borderRadius: 20,
 		padding: 10,
 		margin: 5,
-		backgroundColor: "rgba(100, 100, 100, 0.8)",
+		backgroundColor: "rgba(82, 136, 184, 0.4)",
 		alignItems: "center"
 	},
 	button: {

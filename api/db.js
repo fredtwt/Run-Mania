@@ -2,7 +2,7 @@ import firebase from "./firebaseConfig"
 
 export const db = firebase.database()
 
-const newUser = (username, email, gender, height, weight, job) => ({
+const newUser = (username, email, gender, height, weight, job, avatar) => ({
   gender: gender,
   job: job,
   height: height,
@@ -11,12 +11,13 @@ const newUser = (username, email, gender, height, weight, job) => ({
   email: email,
   statistics: {
     level: 1,
+		points: 0,
     exp: 0,
     hp: 100,
     atk: 10,
+    magic: 10,
     def: 10,
-    evd: 10,
-    spd: 10
+    mr: 10
   },
   runningLogs: {
     numberOfRuns: 0,
@@ -24,7 +25,7 @@ const newUser = (username, email, gender, height, weight, job) => ({
   }
 })
 
-export const createUser = async ({ id, username, email, gender, height, weight, job }, onSuccess, onError) => {
+export const createUser = async ({ id, username, email, gender, height, weight, job, }, onSuccess, onError) => {
   try {
     const user = db.ref("users/" + id)
     await user.set(newUser(username, email, gender, height, weight, job))
@@ -121,11 +122,7 @@ export const addRun = async ({ userId, time, distance, pace, calories, date, rou
 export const addExperience = async ({userId, distance}, onSuccess, onError) => {
   try {
     const stats = db.ref("users/" + userId + "/statistics")
-    const atk = (await stats.child("atk").get()).val()
-    const def = (await stats.child("def").get()).val()
-    const evd = (await stats.child("evd").get()).val()
-    const hp = (await stats.child("hp").get()).val()
-    const spd = (await stats.child("spd").get()).val()
+    const points = (await stats.child("points").get()).val()
     const level = (await stats.child("level").get()).val()
     const levelExp = level * 2 * 1000 // in meters
     const currentExp = (await stats.child("exp").get()).val() + distance
@@ -136,11 +133,7 @@ export const addExperience = async ({userId, distance}, onSuccess, onError) => {
       await stats.update({
         level: level + newLevel,
         exp: newExp,
-        atk: atk + 10,
-        def: def + 10,
-        evd: evd + 10,
-        spd: spd + 10,
-        hp: hp + 10 
+				points: points + 10, 
       })
       return onSuccess(levelExp, currentExp - levelExp)
     } else {
@@ -152,6 +145,24 @@ export const addExperience = async ({userId, distance}, onSuccess, onError) => {
   } catch (error) {
     return onError(error)
   }
+}
+
+export const addStats = async ({userId, hp, atk, magic, def, mr, points}, onSuccess, onError) => {
+	try {
+		const stats = db.ref("users/" + userId + "/statistics")
+		await stats.update({
+			hp: hp,
+			atk: atk,
+			magic: magic,
+			def: def,
+			mr: mr,
+			points: points
+		})
+
+		return onSuccess()
+	} catch (error) {
+		return onError(error)
+	}
 }
 
 export const userDetails = (id) => {

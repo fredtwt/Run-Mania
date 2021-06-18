@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from "react-native-vector-icons"
 
 import MainStackScreen from "./MainStackScreen"
 import Home from "../screens/Home"
-import Equipments from "../screens/Equipments"
+import Stats from "../screens/Stats"
 import Running from "../screens/Running"
 import Pvp from "../screens/Pvp"
 
@@ -17,9 +17,9 @@ const HomeScreen = ({ navigation }) => {
   )
 }
 
-const EquipmentScreen = ({ navigation }) => {
+const StatsScreen = ({ navigation }) => {
   return (
-    <MainStackScreen name="Equipment" component={Equipments} headerTitle="Equips" backgroundColor={color.equipsAccent} onPress={() => navigation.openDrawer()} />
+    <MainStackScreen name="Stats" component={Stats} headerTitle="Stats" backgroundColor={color.equipsAccent} onPress={() => navigation.openDrawer()} />
   )
 }
 
@@ -56,13 +56,13 @@ const TabNavigator = (props) => {
         }}
       />
       <Tab.Screen
-        name="Equipment"
-        component={EquipmentScreen}
+        name="Stats"
+        component={StatsScreen}
         options={{
-          tabBarLabel: 'Equips',
+          tabBarLabel: 'Stats',
           tabBarColor: color.equipsAccent,
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="bag-personal" color={color} size={26} />
+            <MaterialCommunityIcons name="chart-bar" color={color} size={26} />
           ),
         }}
       />

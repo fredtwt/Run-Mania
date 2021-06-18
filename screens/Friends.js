@@ -18,9 +18,28 @@ const formatDistance = (dist) => dist < 1000
 	? dist + " m"
 	: (dist / 1000).toFixed(2) + " km"
 
+const getAvatar = (gender, job) => {
+	if (gender == "Male") {
+		if (job == "Archer") {
+			return require("../assets/avatars/male_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/male_mage.png")
+		} else {
+			return require("../assets/avatars/male_warrior.png")
+		}
+	} else {
+		if (job == "Archer") {
+			return require("../assets/avatars/female_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/female_mage.png")
+		} else {
+			return require("../assets/avatars/female_warrior.png")
+		}
+	}
+}
+
 const FriendContainer = (props) => {
 	const [overlayVisible, setOverlayVisible] = useState(false)
-
 	return (
 		<View>
 			<Modal
@@ -34,7 +53,7 @@ const FriendContainer = (props) => {
 				<View style={styles.overlayBackground}>
 					<View style={{ flex: 1, flexDirection: "row", paddingTop: 20, paddingLeft: 20, paddingBottom: 10, width: "100%" }}>
 						<Image
-							source={require("../assets/archer.png")}
+							source={getAvatar(props.gender, props.job)}
 							style={styles.image}
 							PlaceholderContent={<ActivityIndicator size="large" />} />
 						<View style={{ flexDirection: "column", paddingLeft: 10, justifyContent: "center" }}>
@@ -55,16 +74,16 @@ const FriendContainer = (props) => {
 								<Text style={styles.stats}>{props.atk}</Text>
 							</View>
 							<View>
+								<Text style={styles.statsHeader}>MAGIC:</Text>
+								<Text style={styles.stats}>{props.magic}</Text>
+							</View>
+							<View>
 								<Text style={styles.statsHeader}>DEF:</Text>
 								<Text style={styles.stats}>{props.def}</Text>
 							</View>
 							<View>
-								<Text style={styles.statsHeader}>EVD:</Text>
-								<Text style={styles.stats}>{props.evd}</Text>
-							</View>
-							<View>
-								<Text style={styles.statsHeader}>SPD:</Text>
-								<Text style={styles.stats}>{props.spd}</Text>
+								<Text style={styles.statsHeader}>MR:</Text>
+								<Text style={styles.stats}>{props.mr}</Text>
 							</View>
 						</View>
 						<View style={{ flex: 1, flexDirection: "row", marginTop: 5, alignItems: "center", justifyContent: "space-around" }}>
@@ -93,7 +112,7 @@ const FriendContainer = (props) => {
 			<TouchableOpacity onPress={() => setOverlayVisible(true)}>
 				<View style={styles.logContainer}>
 					<Image
-						source={require("../assets/archer.png")}
+						source={getAvatar(props.gender, props.job)}
 						style={styles.listImage}
 						PlaceholderContent={<ActivityIndicator size="large" />} />
 					<View style={{ flexDirection: "column" }}>
@@ -116,14 +135,16 @@ const Friends = () => {
 	const user = Authentication.getCurrentUserId()
 	const [search, setSearch] = useState("")
 	const [searchFriend, setSearchFriend] = useState({
+		job: "",
+		gender: "",
 		username: "",
 		statistics: {
 			level: "",
 			atk: "",
 			hp: "",
 			def: "",
-			evd: "",
-			spd: ""
+			magic: "",
+			mr: ""
 		},
 		runningLogs: {
 			totalDistanceRan: ""
@@ -137,7 +158,7 @@ const Friends = () => {
 		setLoading(true)
 		if (uid == "") {
 			setLoading(false)
-			return Alert.alert("UID search field is empty!")
+			return Alert.alert(null, "UID search field is empty!")
 		}
 
 		Database.searchUser({ id: uid },
@@ -150,7 +171,7 @@ const Friends = () => {
 			},
 			(error) => {
 				setLoading(false)
-				return Alert.alert("No such user found! Please try again.")
+				return Alert.alert(null, "No such user found! Please try again.")
 			})
 	}
 
@@ -161,12 +182,12 @@ const Friends = () => {
 		Database.sendFriendRequest({ currentId: userId, friendId: friendId },
 			(friend) => {
 				setLoading(false)
-				return Alert.alert("Friend request sent successfully!")
+				return Alert.alert(null, "Friend request sent successfully!")
 			},
 			(error) => {
 				setLoading(false)
 				console.log(error)
-				return Alert.alert("Friend request unsuccessful! You have made this request before!")
+				return Alert.alert(null, "Friend request unsuccessful! You have made this request before!")
 			})
 	}
 
@@ -181,12 +202,12 @@ const Friends = () => {
 					Database.rejectFriendRequest({ currentId: userId, friendId: friendId },
 						(friend) => {
 							setLoading(false)
-							return Alert.alert("Unfriended successfully!")
+							return Alert.alert(null, "Unfriended successfully!")
 						},
 						(error) => {
 							setLoading(false)
 							console.log(error)
-							return Alert.alert("Unfriend unsuccessful!")
+							return Alert.alert(null, "Unfriend unsuccessful!")
 						})
 
 				}
@@ -213,14 +234,15 @@ const Friends = () => {
 							setFriendsArray(prevData => [...prevData, {
 								uid: current.val().uid,
 								job: snapshot.val().job,
+								gender: snapshot.val().gender,
 								username: snapshot.val().username,
 								distance: snapshot.child("runningLogs").val().totalDistanceRan,
 								level: snapshot.child("statistics").val().level,
 								atk: snapshot.child("statistics").val().atk,
 								hp: snapshot.child("statistics").val().hp,
 								def: snapshot.child("statistics").val().def,
-								evd: snapshot.child("statistics").val().evd,
-								spd: snapshot.child("statistics").val().spd,
+								magic: snapshot.child("statistics").val().magic,
+								mr: snapshot.child("statistics").val().mr,
 							}])
 						})
 					}
@@ -254,7 +276,7 @@ const Friends = () => {
 				<View style={styles.overlayBackground}>
 					<View style={{ flex: 1, flexDirection: "row", paddingTop: 20, paddingLeft: 20, paddingBottom: 10, width: "100%" }}>
 						<Image
-							source={require("../assets/archer.png")}
+							source={getAvatar(searchFriend.gender, searchFriend.job)}
 							style={styles.image}
 							PlaceholderContent={<ActivityIndicator size="large" />} />
 						<View style={{ flexDirection: "column", paddingLeft: 10, justifyContent: "center" }}>
@@ -275,16 +297,16 @@ const Friends = () => {
 								<Text style={styles.stats}>{searchFriend.statistics.atk}</Text>
 							</View>
 							<View>
+								<Text style={styles.statsHeader}>MAGIC:</Text>
+								<Text style={styles.stats}>{searchFriend.statistics.magic}</Text>
+							</View>
+							<View>
 								<Text style={styles.statsHeader}>DEF:</Text>
 								<Text style={styles.stats}>{searchFriend.statistics.def}</Text>
 							</View>
 							<View>
-								<Text style={styles.statsHeader}>EVD:</Text>
-								<Text style={styles.stats}>{searchFriend.statistics.evd}</Text>
-							</View>
-							<View>
-								<Text style={styles.statsHeader}>SPD:</Text>
-								<Text style={styles.stats}>{searchFriend.statistics.spd}</Text>
+								<Text style={styles.statsHeader}>MR:</Text>
+								<Text style={styles.stats}>{searchFriend.statistics.mr}</Text>
 							</View>
 						</View>
 						<View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
@@ -356,12 +378,13 @@ const Friends = () => {
 						return (
 							<FriendContainer
 								unfriendRequest={() => unfriendRequest(user, item.uid)}
+								gender={item.gender}
 								job={item.job}
 								atk={item.atk}
 								hp={item.hp}
 								def={item.def}
-								evd={item.evd}
-								spd={item.spd}
+								mr={item.mr}
+								magic={item.magic}
 								distance={item.distance}
 								username={item.username}
 								level={item.level} />

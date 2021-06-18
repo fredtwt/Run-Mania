@@ -59,8 +59,45 @@ const HomeScreen = () => {
 	)
 }
 
+const getAvatar = (gender, job) => {
+	if (gender == "Male") {
+		if (job == "Archer") {
+			return require("../assets/avatars/male_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/male_mage.png")
+		} else {
+			return require("../assets/avatars/male_warrior.png")
+		}
+	} else {
+		if (job == "Archer") {
+			return require("../assets/avatars/female_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/female_mage.png")
+		} else {
+			return require("../assets/avatars/female_warrior.png")
+		}
+	}
+}
+
 const DrawerContent = (props) => {
 	const user = props.user
+	const [gender, setGender] = useState("")
+	const [job, setJob] = useState("")
+
+	useEffect(() => {
+		let mounted = true
+
+		Database.userDetails(user).get().then(snapshot => {
+			if (mounted) {
+				setGender(snapshot.val().gender)
+				setJob(snapshot.val().job)
+			}
+		})
+
+		return () => {
+			mounted = false
+		}
+	}, [])
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -69,7 +106,7 @@ const DrawerContent = (props) => {
 					<View style={styles.userInfoSection}>
 						<View style={{ flexDirection: "row", marginTop: 20 }}>
 							<View style={{ marginRight: 15 }}>
-								<Avatar activeOpacity={0.2} size="large" containerStyle={{ backgroundColor: "#fff" }} source={require("../assets/archer.png")} rounded />
+								<Avatar activeOpacity={0.9} size="large" containerStyle={{ borderWidth: 3 }} source={getAvatar(gender, job)} rounded />
 							</View>
 							<View style={{ marginleft: 20, flexDirection: "column" }}>
 								<Title style={styles.title}>{props.username}</Title>

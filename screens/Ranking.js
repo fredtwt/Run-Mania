@@ -10,6 +10,26 @@ import * as Database from "../api/db"
 const deviceHeight = Dimensions.get("window").height
 const deviceWidth = Dimensions.get("window").width
 
+const getAvatar = (gender, job) => {
+	if (gender == "Male") {
+		if (job == "Archer") {
+			return require("../assets/avatars/male_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/male_mage.png")
+		} else {
+			return require("../assets/avatars/male_warrior.png")
+		}
+	} else {
+		if (job == "Archer") {
+			return require("../assets/avatars/female_archer.png")
+		} else if (job == "Mage") {
+			return require("../assets/avatars/female_mage.png")
+		} else {
+			return require("../assets/avatars/female_warrior.png")
+		}
+	}
+}
+
 const Ranking = () => {
 	const [data, setData] = useState([])
 	const [currentUser, setCurrentUser] = useState({
@@ -59,7 +79,9 @@ const Ranking = () => {
 				setData(prevData => [...prevData, {
 					username: user.val().username + "  ---  Lvl " + user.child("statistics").val().level,
 					email: user.val().email,
-					totalDistanceRan: user.child("runningLogs/totalDistanceRan").val()
+					totalDistanceRan: user.child("runningLogs/totalDistanceRan").val(),
+					gender: user.val().gender,
+					job: user.val().job
 				}])
 				}
 			})
@@ -75,6 +97,8 @@ const Ranking = () => {
 					username: username,
 					email: email,
 					totalDistanceRan: totalDistanceRan,
+					job: snapshot.val().job,
+					gender: snapshot.val().gender
 				})
 			})
 		},
@@ -103,7 +127,7 @@ const Ranking = () => {
 				</View>
 				<View style={styles.header}>
 					<Image
-						source={require("../assets/archer.png")}
+						source={getAvatar(currentUser.gender, currentUser.job)}
 						style={styles.image}
 						PlaceholderContent={<ActivityIndicator size="large" />} />
 				</View>
@@ -143,7 +167,7 @@ const styles = StyleSheet.create({
 		justifyContent: "center"
 	},
 	headerText: {
-		fontSize: deviceHeight >= 760 ? 38 : 30,
+		fontSize: deviceHeight >= 760 ? 30 : 28,
 		color: "white",
 	},
 	leaderboardContainer: {
@@ -154,7 +178,7 @@ const styles = StyleSheet.create({
 		width: deviceHeight >= 760 ? 120 : 110,
 		height: deviceHeight >= 760 ? 120 : 110,
 		borderRadius: deviceHeight >= 760 ? 120 / 2 : 110 /2,
-		borderWidth: 3,
+		borderWidth: 3.5,
 		borderColor: "black"
 	},
 })

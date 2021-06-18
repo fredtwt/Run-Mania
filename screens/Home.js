@@ -13,10 +13,12 @@ const deviceHeight = Dimensions.get("window").height
 
 const Home = () => {
 	const user = Authentication.getCurrentUserId()
+	const [job, setJob] = useState("")
+	const [gender, setGender] = useState("")
 	const [userStatsArr, setUserStatsArr] = useState([])
 	const [expPercentage, setExpPercentage] = useState()
 	const [prevRun, setPrevRun] = useState([])
-	const [username, setUsername] = useState()
+	const [username, setUsername] = useState("")
 	const [loading, setLoading] = useState(true)
 
 	const formatDistance = (dist) => dist < 1000
@@ -26,12 +28,16 @@ const Home = () => {
 	useEffect(() => {
 		let mounted = true
 		Database.userDetails(user).on("value", (snapshot) => {
+			const job = snapshot.val().job
+			const gender = snapshot.val().gender
 			const stats = snapshot.child("statistics").val()
 			const levelExp = stats.level * 2 * 1000
 			const currentExp = stats.exp
 			const numberOfRuns = snapshot.child("runningLogs/numberOfRuns").val()
 			const run = snapshot.child("runningLogs/history/" + numberOfRuns).val()
 			if (mounted) {
+				setJob(job)
+				setGender(gender)
 				setUserStatsArr(stats)
 				setUsername(snapshot.val().username)
 				setExpPercentage(currentExp / levelExp)
@@ -45,6 +51,26 @@ const Home = () => {
 		}
 	}, [])
 
+	const getAvatar = () => {
+		if (gender == "Male") {
+			if (job == "Archer") {
+				return require("../assets/avatars/male_archer.png")
+			} else if (job == "Mage") {
+				return require("../assets/avatars/male_mage.png")
+			} else {
+				return require("../assets/avatars/male_warrior.png")
+			}
+		} else {
+			if (job == "Archer") {
+				return require("../assets/avatars/female_archer.png")
+			} else if (job == "Mage") {
+				return require("../assets/avatars/female_mage.png")
+			} else {
+				return require("../assets/avatars/female_warrior.png")
+			}
+		}
+	}
+
 	return (
 		<View style={styles.container}>
 			<Spinner
@@ -54,54 +80,52 @@ const Home = () => {
 				textStyle={{
 					color: "white"
 				}} />
-			<View style={{ flex: 2, height: deviceHeight * (2 / 3) }}>
-				<View style={styles.imageContainer}>
-					<Image
-						source={require("../assets/archer.png")}
-						style={styles.image}
-						PlaceholderContent={<ActivityIndicator />} />
-					<Text style={styles.text}>{username}</Text>
-					<View style={styles.charContainer}>
-						<Text style={styles.level}>Level: {userStatsArr.level}</Text>
-						<Progress.Bar
-							progress={expPercentage}
-							height={10}
-							width={250}
-							color="#AEF94E"
-							borderWidth={1}
-							borderColor="#fff" />
-						<View style={styles.statsContainer}>
-							<View style={{ flexDirection: "column", flex: 1, alignItems: "center", width: "100%" }}>
-								<Text style={styles.stats}>HP:
-									<Text style={styles.value}> {userStatsArr.hp}</Text>
-								</Text>
-								<Text style={styles.stats}>ATK:
-									<Text style={styles.value}> {userStatsArr.atk}</Text>
-								</Text>
-								<Text style={styles.stats}>DEF:
-									<Text style={styles.value}> {userStatsArr.def}</Text>
-								</Text>
-							</View>
-							<View style={{ flex: 1, flexDirection: "column", alignItems: "center" }}>
-								<Text style={styles.stats}>EVD:
-									<Text style={styles.value}> {userStatsArr.evd}</Text>
-								</Text>
-								<Text style={styles.stats}>SPD:
-									<Text style={styles.value}> {userStatsArr.spd}</Text>
-								</Text>
-							</View>
-						</View>
-					</View>
+			<View style={styles.imageContainer}>
+				<Image
+					source={getAvatar()}
+					style={styles.image}
+					PlaceholderContent={<ActivityIndicator />} />
+			</View>
+			<View style={styles.charContainer}>
+				<Text style={styles.text}>{username}</Text>
+				<Text style={styles.level}>Level: {userStatsArr.level}</Text>
+				<Progress.Bar
+					progress={expPercentage}
+					height={10}
+					width={250}
+					color="#AEF94E"
+					borderWidth={1}
+					borderColor="#fff" />
+			</View>
+			<View style={styles.statsContainer}>
+				<View style={{ flexDirection: "column", flex: 1, alignItems: "center", width: "100%" }}>
+					<Text style={styles.stats}>HP:
+						<Text style={styles.value}> {userStatsArr.hp}</Text>
+					</Text>
+					<Text style={styles.stats}>ATK:
+						<Text style={styles.value}> {userStatsArr.atk}</Text>
+					</Text>
+					<Text style={styles.stats}>MAGIC:
+						<Text style={styles.value}> {userStatsArr.magic}</Text>
+					</Text>
+				</View>
+				<View style={{ flex: 1, flexDirection: "column", alignItems: "center" }}>
+					<Text style={styles.stats}>DEF:
+						<Text style={styles.value}> {userStatsArr.def}</Text>
+					</Text>
+					<Text style={styles.stats}>MR:
+						<Text style={styles.value}> {userStatsArr.mr}</Text>
+					</Text>
 				</View>
 			</View>
 			<View style={styles.logsContainer}>
-				<View style={{ flex: 1, flexDirection: "row", justifyContent: "center" }}>
+				<View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-start", paddingLeft: 5 }}>
 					<Text style={[styles.text, { fontSize: deviceHeight >= 770 ? 25 : 23, alignSelf: "center" }]}>Previous Run: </Text>
 					<Text style={[{ color: "white", fontSize: deviceHeight >= 770 ? 22 : 20, alignSelf: "center" }]}>{prevRun != null ? prevRun.date : ""}</Text>
 				</View>
 				<View style={styles.runContainer}>
 					<View style={{ flex: 1, flexDirection: "column", marginTop: 5, marginLeft: 10, alignSelf: "center", justifyContent: "center" }}>
-						<Text style={{ fontSize: deviceHeight >= 770 ? 25 : 23, fontWeight: "bold", color: "white", alignSelf: "center" }}>{prevRun != null ? formatDistance(prevRun.distance) : "0"}</Text>
+						<Text style={{ fontSize: deviceHeight >= 770 ? 30 : 28, fontWeight: "bold", color: "white", alignSelf: "center" }}>{prevRun != null ? formatDistance(prevRun.distance) : "0 m"}</Text>
 						<Text style={{ fontSize: deviceHeight >= 770 ? 14 : 12, color: "#BBBDBD", alignSelf: "center" }}>DISTANCE</Text>
 					</View>
 					<View style={{ flex: 1, flexDirection: "row", marginTop: 5, marginLeft: 10, marginBottom: 8, alignSelf: "center", alignItems: "center" }}>
@@ -137,15 +161,17 @@ const styles = StyleSheet.create({
 		alignItems: "center"
 	},
 	imageContainer: {
-		flex: 2,
+		flex: 1.75,
 		marginTop: 30,
+		marginBottom: 2,
 		alignItems: "center"
 	},
 	image: {
-		width: deviceHeight >= 760 ? deviceWidth * 0.4 : deviceWidth * 0.3,
-		height: deviceHeight >= 760 ? deviceWidth * 0.4 : deviceWidth * 0.3,
+		flex: 1,
+		aspectRatio: 1.06,
+		resizeMode: "cover", 
 		borderRadius: 10,
-		borderWidth: 4,
+		borderWidth: 5,
 	},
 	charContainer: {
 		flex: 1,
@@ -168,7 +194,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: "row",
 		width: "80%",
-		marginTop: "5%",
 		justifyContent: "center",
 		alignSelf: "center",
 	},
@@ -183,19 +208,18 @@ const styles = StyleSheet.create({
 		fontSize: deviceHeight >= 760 ? 23 : 20,
 	},
 	logsContainer: {
-		flex: 1,
+		flex: 2.5,
 		flexDirection: "column",
 		justifyContent: "flex-start",
 		marginBottom: 30
 	},
 	runContainer: {
-		flex: 6,
+		flex: 3,
 		backgroundColor: "rgba(77, 77, 77, 0.8)",
 		width: "90%",
-		borderWidth: 1.5,
+		borderWidth: 2,
 		borderColor: "white",
 		borderRadius: 20,
-		marginTop: 10,
 		alignSelf: "center"
 	}
 })

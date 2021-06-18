@@ -27,7 +27,6 @@ const Signup = ({ navigation }) => {
     {label: "Warrior (Well-spread out stats)", value: "Warrior"},
     {label: "Rogue (High EVD & SPD)", value: "Rogue"},
     {label: "Archer (High ATK & SPD)", value: "Archer"},
-    {label: "Bruiser (High HP & DEF)", value: "Bruiser"}
   ])
   const [confirmationPassword, setConfirmationPassword] = useState("")
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
@@ -37,6 +36,7 @@ const Signup = ({ navigation }) => {
   const handleRegister = () => {
     Keyboard.dismiss()
     setIsRegisterLoading(true)
+
     if (checkEmail() && checkPassword() && checkConfirmationPassword() && username != "" && checkNumeric(height) && checkNumeric(weight) && genderValue != null && jobValue != null) {
       Authentication.createAccount(
         { username, email, password },
@@ -47,7 +47,15 @@ const Signup = ({ navigation }) => {
               name: "Login",
             }]
           }))
-          Database.createUser({ id: user.uid, username: username, email: email, gender: genderValue, height: height, weight: weight, job: jobValue }, () => { }, (error) => alert(error))
+          Database.createUser({ 
+						id: user.uid, 
+						username: username, 
+						email: email, 
+						gender: genderValue, 
+						height: height, 
+						weight: weight, 
+						job: jobValue ,
+					}, () => { }, (error) => alert(error))
           return Alert.alert(null, "Account has been created successfully!")
         },
         (error) => {
