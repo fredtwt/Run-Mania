@@ -73,14 +73,39 @@ This application uses Firebase as its backend as well as its database.
 ### Frontend
 This application uses React Native in conjunciton with Expo's managed workflow to allow our app to be easily published and run on both android and iOS platforms. 
 
-### Workflow
-insert pictures here
-
+### Data Flow
+![Data Flow 1](https://github.com/ongkimlai/Run-Mania/blob/main/assets/Dataflow1.png)
+![Data Flow 2](https://github.com/ongkimlai/Run-Mania/blob/main/assets/Dataflow2.png)
 
 ## Software Development Process
-### Auto routing problems
+### Auto routing
+------
+To achieve the auto routing, we first use Expo's location module the retrieve user's current location as the point of origin, then we use another module from npmjs library which allows us to pick a random point on a circle from a set radius (using the same distance defined by the user). We use this module to find 2 points, and together with the origin as the starting and ending point, we are able to request a route from Google Directions API to generate the route for us. 
+
+We only find 2 random points because this ensures a loop from start to finish. 
+With only 2 random points, the route generated on a 2D map will become a proper loop, whereas with 3 or more random points, the route generated may or may not be give us a loop (as illustrated below).
+![image](https://user-images.githubusercontent.com/77159295/122736771-f3217580-d2b2-11eb-9711-cb280da6bb8a.png)
+
+The distance of the generated route will never always be the distance desired by the user. 
+Therefore, we recursively do the following: 
+- check the distance of the route
+- if it is within 250m of the desired distance, we show the user the route
+- otherwise, we request from Google Directions API again for another route
+
+### Tracking the run
+------
+At every position change, the app records down the user's new location and appends in to the back of an array. This array stores elements containing the latitude and longitude values of the user during their run, thus allowing us to dynamically plot a line on the map as the user moves. A simple timer is implemented by incrementing a variable by 1 at every 1s intervals. However, the tricky part to implement is when the app is backgrounded but we stil want it to continue tracking. 
+
+When the app is backgrounded, we want track of only 2 things, the timer and location. 
+For the timer, timestamp is recorded the moment the app goes into the "background" and into the "active" state, then taking the time between this 2 timestamps and add it to the timer variable.
+For the location, we wll have to request for both foreground and background location services permissions on the user's phone. With the background location services granted, the application will be able to constantly update the locations array and hence continue tracking the user. Once the app state changes back into "active", the background tracking stops while the foreground tracking resumes. 
+#### **However, background location tracking DOES NOT work on physical iOS devices unless we build the application, which requires an Apple Developer Account**
+This is a limitation by the Expo Client for iOS devices specifically (see [here](https://forums.expo.io/t/background-location-not-working/23433/3)).
+We have tested the background location tracking to be working on iOS simulator, Android Studio and a phyiscal android device. 
+Therefore, if you want to test on a physical iOS device, you have to leave it unlocked. 
 
 ### Running logs
+------
 
 
 
