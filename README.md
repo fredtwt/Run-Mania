@@ -43,8 +43,8 @@ Earn experience by running! Required experience to level up is calculated by ( C
 ### Settings
 Allows users to edit their username, email or password. 
 
-### Friends List
-sadasdasdasd
+### Friends
+Allows users to send friend requests with their unique ID code. Once they become friends on the app, they will be able to view the avatar and stats of others.
 
 ## Development Plan
 Currently implemented: 
@@ -104,8 +104,8 @@ This is a limitation by the Expo Client for iOS devices specifically (see [here]
 We have tested the background location tracking to be working on iOS simulator, Android Studio and a phyiscal android device. 
 Therefore, if you want to test on a physical iOS device, you have to leave it unlocked. 
 
-### Running logs
+### Firebase Usage
 ------
+We use Firebase to keep track of all the data such as the user's stats, past runs (statistics + array of user locations), which user is friends with who, and to implement the leaderboard and PvP functions.
 
-
-
+For the leaderboard, 
