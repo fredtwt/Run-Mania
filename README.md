@@ -74,8 +74,8 @@ This application uses Firebase as its backend as well as its database.
 This application uses React Native in conjunciton with Expo's managed workflow to allow our app to be easily published and run on both android and iOS platforms. 
 
 ### Data Flow
-![Data Flow 1](https://github.com/ongkimlai/Run-Mania/blob/main/assets/Dataflow1.png)
-![Data Flow 2](https://github.com/ongkimlai/Run-Mania/blob/main/assets/Dataflow2.png)
+![image](https://user-images.githubusercontent.com/77159295/122953117-0e72aa80-d3b1-11eb-98d4-d1a952853f06.png)
+![image](https://user-images.githubusercontent.com/77159295/122953396-42e66680-d3b1-11eb-853a-f529f7294e57.png)
 
 ## Software Development Process
 ### Auto routing
