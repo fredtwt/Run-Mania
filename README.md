@@ -98,7 +98,7 @@ At every position change, the app records down the user's new location and appen
 
 When the app is backgrounded, we want track of only 2 things, the timer and location. 
 For the timer, timestamp is recorded the moment the app goes into the "background" and into the "active" state, then taking the time between this 2 timestamps and add it to the timer variable.
-For the location, we wll have to request for both foreground and background location services permissions on the user's phone. With the background location services granted, the application will be able to constantly update the locations array and hence continue tracking the user. Once the app state changes back into "active", the background tracking stops while the foreground tracking resumes. 
+For the location, we will have to request for both foreground and background location services permissions on the user's phone. With the background location services granted, the application will be able to constantly update the locations array and hence continue tracking the user. Once the app state changes back into "active", the background tracking stops while the foreground tracking resumes. 
 #### **However, background location tracking DOES NOT work on physical iOS devices unless we build the application, which requires an Apple Developer Account**
 This is a limitation by the Expo Client for iOS devices specifically (see [here](https://forums.expo.io/t/background-location-not-working/23433/3)).
 We have tested the background location tracking to be working on iOS simulator, Android Studio and a phyiscal android device. 
