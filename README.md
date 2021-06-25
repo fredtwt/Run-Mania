@@ -84,7 +84,7 @@ To achieve the auto routing, we first use Expo's location module the retrieve us
 
 We only find 2 random points because this ensures a loop from start to finish. 
 With only 2 random points, the route generated on a 2D map will become a proper loop, whereas with 3 or more random points, the route generated may or may not be give us a loop (as illustrated below).
-![image](https://user-images.githubusercontent.com/77159295/122736771-f3217580-d2b2-11eb-9711-cb280da6bb8a.png)
+![image](https://user-images.githubusercontent.com/77159295/123443823-d4034a80-d608-11eb-94b2-e0e5bdbb90f2.png)
 
 The distance of the generated route will never always be the distance desired by the user. 
 Therefore, we recursively do the following: 
