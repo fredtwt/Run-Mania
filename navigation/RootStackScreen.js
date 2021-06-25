@@ -18,7 +18,6 @@ const RootStackScreen = () => {
     { name: "Reset", component: PasswordReset }
   ]
 
-
   return (
     <Stack.Navigator
       initialRouteName={screens[0].name}

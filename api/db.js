@@ -3,6 +3,7 @@ import firebase from "./firebaseConfig"
 export const db = firebase.database()
 
 const newUser = (username, email, gender, height, weight, job, avatar) => ({
+	status: false,
   gender: gender,
   job: job,
   height: height,
@@ -24,6 +25,20 @@ const newUser = (username, email, gender, height, weight, job, avatar) => ({
     totalDistanceRan: 0,
   }
 })
+
+export const login = async (id) => {
+	const user = db.ref("users/" + id)
+	user.update({
+		status: true
+	})
+}
+
+export const logout = async (id) => {
+	const user = db.ref("users/" + id)
+	user.update({
+		status: false 
+	})
+}
 
 export const createUser = async ({ id, username, email, gender, height, weight, job, }, onSuccess, onError) => {
   try {
@@ -165,6 +180,122 @@ export const addStats = async ({userId, hp, atk, magic, def, mr, points}, onSucc
 	}
 }
 
+export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
+	try {
+		const game = db.ref("pvp/" + id ) 
+		const player1 = db.ref("users/" + player + "/currentMatch")
+		const player2 = db.ref("users/" + opponent + "/currentMatch")
+		var p1Username = ""
+		var p2Username = ""
+		var p1Stats, p2Stats, p1Job, p2Job, p1Gender, p2Gender
+
+		await db.ref("users/" + player).get().then(user => {
+			p1Username = user.val().username
+			p1Stats = user.val().statistics
+			p1Job = user.val().job
+			p1Gender= user.val().gender
+		})
+
+		await db.ref("users/" + opponent).get().then(user => {
+			p2Username = user.val().username
+			p2Stats = user.val().statistics
+			p2Job = user.val().job
+			p2Gender= user.val().gender
+		})
+		
+		await game.set({
+			gameStarted: false,
+			player1: player,
+			player2: opponent,
+			p1Username: p1Username,
+			p1Stats: p1Stats,
+			p1Job: p1Job,
+			p1Gender: p1Gender,
+			player2: opponent,
+			p2Username: p2Username,
+			p2Stats: p2Stats,
+			p2Job: p2Job,
+			p2Gender: p2Gender,
+		})
+		await player1.set({
+			gameStarted: false,
+			player1: player,
+			player2: opponent,
+			p1Username: p1Username,
+			p1Stats: p1Stats,
+			p1Job: p1Job,
+			p1Gender: p1Gender,
+			player2: opponent,
+			p2Username: p2Username,
+			p2Stats: p2Stats,
+			p2Job: p2Job,
+			p2Gender: p2Gender,
+			id: id,
+			position: "inviter",
+		})
+		await player2.set({
+			gameStarted: false,
+			player1: player,
+			player2: opponent,
+			p1Username: p1Username,
+			p1Stats: p1Stats,
+			p1Job: p1Job,
+			p1Gender: p1Gender,
+			player2: opponent,
+			p2Username: p2Username,
+			p2Stats: p2Stats,
+			p2Job: p2Job,
+			p2Gender: p2Gender,
+			id: id,
+			position: "recipient",
+		})
+		return onSuccess(game)
+	} catch (error) {
+		return onError(error)
+	}
+}
+
+export const acceptGame = async ({ id, player, opponent }, onSuccess, onError) => {
+	try {
+		const game = db.ref("pvp/" + id ) 
+		const player1 = db.ref("users/" + player + "/currentMatch")
+		const player2 = db.ref("users/" + opponent + "/currentMatch")
+		
+		await game.update({
+			gameStarted: true
+		})
+		await player1.update({
+			gameStarted: true
+		})
+		await player2.update({
+			gameStarted: true
+		})
+		return onSuccess(game)
+	} catch (error) {
+		return onError(error)
+	}
+}
+
+export const cancelGame = async ({ id, player, opponent }, onSuccess, onError) => {
+	try {
+		const game = db.ref("pvp/" + id ) 
+		const player1 = db.ref("users/" + player + "/currentMatch")
+		const player2 = db.ref("users/" + opponent + "/currentMatch")
+		
+		await game.set(null)
+		await player1.set(null)
+		await player2.set(null)
+
+		return onSuccess(game)
+	} catch (error) {
+		return onError(error)
+	}
+}
+
 export const userDetails = (id) => {
   return db.ref("users/" + id)
+}
+
+export const gameDetails = (username) => {
+  return db.ref("users/" + username + "/currentMatch")
 }

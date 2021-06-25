@@ -21,6 +21,7 @@ import color from "../constants/color"
 import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
 import { CommonActions } from "@react-navigation/native"
+import Battle from "../screens/Battle"
 
 const SettingsScreen = ({ navigation }) => {
 	return (
@@ -217,23 +218,42 @@ const DrawerNavigator = ({ route, navigation }) => {
 	const [level, setLevel] = useState("")
 	const [statsExp, setStatsExp] = useState("")
 	const [numberOfRuns, setNumberOfRuns] = useState(0)
+	const userId = Authentication.getCurrentUserId()
 	const user = route.params.user
 
 	useEffect(() => {
+		let mounted = true
 		Database.userDetails(Authentication.getCurrentUserId()).on("value", (snapshot) => {
 			const username = snapshot.child("username").val()
 			const level = snapshot.child("statistics").child("level").val()
 			const statsExp = snapshot.child("statistics").child("exp").val()
-			setUsername(username)
-			setLevel(level)
-			setStatsExp(statsExp)
-			setNumberOfRuns(snapshot.child("runningLogs/numberOfRuns").val())
+			if (mounted) {
+				setUsername(username)
+				setLevel(level)
+				setStatsExp(statsExp)
+				setNumberOfRuns(snapshot.child("runningLogs/numberOfRuns").val())
+			}
 		})
+
+		Authentication.setOnAuthStateChanged((user) => {
+		},
+			(error) => {
+				Database.userDetails(userId).update({
+					status: false
+				})
+				console.log("status set to false")
+			})
+
+		return () => {
+			mounted = false
+		}
 	}, [])
+
 
 	const handleLogout = () => {
 		Authentication.signOut(
 			() => {
+				Database.logout(user)
 				navigation.dispatch(CommonActions.reset({
 					index: 0,
 					routes: [{
@@ -260,6 +280,7 @@ const DrawerNavigator = ({ route, navigation }) => {
 			<DrawerNav.Screen name="Main" component={HomeScreen} />
 			<DrawerNav.Screen name="Running2" component={Running2} />
 			<DrawerNav.Screen name="Running3" component={Running3} />
+			<DrawerNav.Screen name="Battle" component={Battle} />
 			<DrawerNav.Screen name="RunningLogs" component={RunningLogsScreen} />
 			<DrawerNav.Screen name="Leaderboard" component={LeaderboardScreen} />
 			<DrawerNav.Screen name="Friends" component={FriendsScreen} />

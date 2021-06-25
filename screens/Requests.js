@@ -261,6 +261,7 @@ const styles = StyleSheet.create({
 	header: {
 		flex: 1,
 		position: "absolute",
+		borderTopWidth: 5,
 		borderBottomWidth: 5,
 		backgroundColor: "rgba(80, 80, 80, 0.7)",
 		padding: 10,

@@ -260,7 +260,7 @@ const Friends = () => {
 		<View style={styles.container}>
 			<Spinner
 				visible={loading}
-				textContent={"Loading logs..."}
+				textContent={"Loading..."}
 				overlayColor="rgba(94, 94, 94, 0.8)"
 				textStyle={{
 					color: "white"
@@ -407,7 +407,8 @@ const styles = StyleSheet.create({
 	header: {
 		flex: 1,
 		position: "absolute",
-		borderBottomWidth: 5,
+		borderTopWidth: 4,
+		borderBottomWidth: 4,
 		backgroundColor: "rgba(80, 80, 80, 0.7)",
 		padding: 10,
 		top: 0,
