@@ -84,7 +84,7 @@ To achieve the auto routing, we first use Expo's location module the retrieve us
 
 We only find 2 random points because this ensures a loop from start to finish. 
 With only 2 random points, the route generated on a 2D map will become a proper loop, whereas with 3 or more random points, the route generated may or may not be give us a loop (as illustrated below).
-![image](https://user-images.githubusercontent.com/77159295/122736771-f3217580-d2b2-11eb-9711-cb280da6bb8a.png)
+![image](https://user-images.githubusercontent.com/77159295/123443823-d4034a80-d608-11eb-94b2-e0e5bdbb90f2.png)
 
 The distance of the generated route will never always be the distance desired by the user. 
 Therefore, we recursively do the following: 
@@ -98,7 +98,7 @@ At every position change, the app records down the user's new location and appen
 
 When the app is backgrounded, we want track of only 2 things, the timer and location. 
 For the timer, timestamp is recorded the moment the app goes into the "background" and into the "active" state, then taking the time between this 2 timestamps and add it to the timer variable.
-For the location, we wll have to request for both foreground and background location services permissions on the user's phone. With the background location services granted, the application will be able to constantly update the locations array and hence continue tracking the user. Once the app state changes back into "active", the background tracking stops while the foreground tracking resumes. 
+For the location, we will have to request for both foreground and background location services permissions on the user's phone. With the background location services granted, the application will be able to constantly update the locations array and hence continue tracking the user. Once the app state changes back into "active", the background tracking stops while the foreground tracking resumes. 
 #### **However, background location tracking DOES NOT work on physical iOS devices unless we build the application, which requires an Apple Developer Account**
 This is a limitation by the Expo Client for iOS devices specifically (see [here](https://forums.expo.io/t/background-location-not-working/23433/3)).
 We have tested the background location tracking to be working on iOS simulator, Android Studio and a phyiscal android device. 
