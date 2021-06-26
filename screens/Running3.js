@@ -120,7 +120,7 @@ const Running3 = ({ route, navigation }) => {
       <View style={styles.runStats}>
         <View style={{alignItems: "center", marginTop: 5, marginBottom: 10}}>
           <Text style={styles.bigText}> Run completed!</Text>
-          <Text style={[styles.smallText, { fontSize: deviceHeight >= 770 ? 20 : 18}]}> {expLeft} km more to level up</Text>
+          <Text style={[styles.smallText, { fontSize: deviceHeight >= 770 ? 20 : 18}]}> {expLeft}m more to level up</Text>
           <Progress.Bar
             progress={expPercentage}
             style={{ marginTop: 5 }}

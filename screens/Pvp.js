@@ -344,15 +344,17 @@ const Pvp = ({ navigation }) => {
 					setP1Username(snapshot.val().p1Username)
 					setP2Username(snapshot.val().p2Username)
 					checkWaiting(snapshot.val())
-					checkGameStatus(snapshot.val())
+					Database.db.ref("pvp/" + snapshot.val().id).get().then(game => {
+						checkGameStatus(game.val())
+					})
 				} else {
 					setP1Username("")
 					setP2Username("")
 					setIsWaiting(false)
 				}
-
 			}
 		})
+
 
 		Database.userDetails(userId).on("value", userDetails => {
 			Database.db.ref("users/").on("value", snapshot => {
@@ -362,7 +364,7 @@ const Pvp = ({ navigation }) => {
 					setUserInfo(userDetails.val().statistics)
 					setPvpArray([])
 					snapshot.forEach(user => {
-						if (user.child("statistics").val().level <= userLevel + 3 && user.child("statistics").val().level >= userLevel - 3 && user.key != userId && user.val().status && limit < 10) {
+						if (user.child("currentMatch").val() == null && user.child("statistics").val().level <= userLevel + 3 && user.child("statistics").val().level >= userLevel - 3 && user.key != userId && user.val().status && limit < 10) {
 							setPvpArray(prev => [...prev, {
 								uid: user.key,
 								gender: user.val().gender,

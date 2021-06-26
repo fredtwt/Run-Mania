@@ -183,6 +183,8 @@ export const addStats = async ({userId, hp, atk, magic, def, mr, points}, onSucc
 export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 	try {
 		const game = db.ref("pvp/" + id ) 
+		const p1 = db.ref("pvp/" + id + "/" + player)
+		const p2 = db.ref("pvp/" + id + "/" + opponent)
 		const player1 = db.ref("users/" + player + "/currentMatch")
 		const player2 = db.ref("users/" + opponent + "/currentMatch")
 		var p1Username = ""
@@ -204,19 +206,28 @@ export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 		})
 		
 		await game.set({
+			id: id,
 			gameStarted: false,
-			player1: player,
-			player2: opponent,
-			p1Username: p1Username,
-			p1Stats: p1Stats,
-			p1Job: p1Job,
-			p1Gender: p1Gender,
-			player2: opponent,
-			p2Username: p2Username,
-			p2Stats: p2Stats,
-			p2Job: p2Job,
-			p2Gender: p2Gender,
 		})
+
+		await p1.set({
+			action: "",
+			ready: false,
+			username: p1Username,
+			stats: p1Stats,
+			job: p1Job,
+			gender: p1Gender	
+		})
+
+		await p2.set({
+			action: "",
+			ready: false,
+			username: p2Username,
+			stats: p2Stats,
+			job: p2Job,
+			gender: p2Gender	
+		})
+
 		await player1.set({
 			gameStarted: false,
 			player1: player,
@@ -233,6 +244,7 @@ export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 			id: id,
 			position: "inviter",
 		})
+
 		await player2.set({
 			gameStarted: false,
 			player1: player,
@@ -241,14 +253,19 @@ export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 			p1Stats: p1Stats,
 			p1Job: p1Job,
 			p1Gender: p1Gender,
+			p1Ready: false,
+			p1Action: "",
 			player2: opponent,
 			p2Username: p2Username,
 			p2Stats: p2Stats,
 			p2Job: p2Job,
 			p2Gender: p2Gender,
+			p2Ready: false,
+			p2Action: "",
 			id: id,
 			position: "recipient",
 		})
+
 		return onSuccess(game)
 	} catch (error) {
 		return onError(error)
@@ -292,8 +309,21 @@ export const cancelGame = async ({ id, player, opponent }, onSuccess, onError) =
 	}
 }
 
+export const updateGameState = async (playerId, action, matchId) => {
+	const game = db.ref("pvp/" + matchId + "/" + playerId)
+
+	await game.update({
+		action: action,
+		ready: true,
+	})
+}
+
 export const userDetails = (id) => {
   return db.ref("users/" + id)
+}
+
+export const game = (id) => {
+  return db.ref("pvp/" + id)
 }
 
 export const gameDetails = (username) => {

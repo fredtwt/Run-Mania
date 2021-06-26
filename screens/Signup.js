@@ -25,8 +25,8 @@ const Signup = ({ navigation }) => {
 	const [jobValue, setJobValue] = useState(null)
 	const [job, setJob] = useState([
 		{ label: "Warrior (Well-spread out stats)", value: "Warrior" },
-		{ label: "Rogue (High EVD & SPD)", value: "Rogue" },
-		{ label: "Archer (High ATK & SPD)", value: "Archer" },
+		{ label: "Mage (High MAGIC)", value: "Mage" },
+		{ label: "Archer (High ATK)", value: "Archer" },
 	])
 	const [confirmationPassword, setConfirmationPassword] = useState("")
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false)
