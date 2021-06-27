@@ -174,7 +174,7 @@ const Stats = (navigation) => {
 							style={styles.leftButtonContainer}
 							onPress={() => {
 								if (atk > 0) {
-									setAtk(prev => prev - 1)
+									setAtk(prev => prev - 2)
 									setPoints(prev => prev + 1)
 								} else {
 									return Alert.alert(null, "Negative values are not allowed!")
@@ -193,7 +193,7 @@ const Stats = (navigation) => {
 							style={styles.rightButtonContainer}
 							onPress={() => {
 								if (points > 0) {
-									setAtk(prev => prev + 1)
+									setAtk(prev => prev + 2)
 									setPoints(prev => prev - 1)
 								} else {
 									return Alert.alert(null, "You have insufficient stat points!")
@@ -220,7 +220,7 @@ const Stats = (navigation) => {
 							style={styles.leftButtonContainer}
 							onPress={() => {
 								if (magic > 0) {
-									setMagic(prev => prev - 1)
+									setMagic(prev => prev - 2)
 									setPoints(prev => prev + 1)
 								} else {
 									return Alert.alert(null, "Negative values are not allowed!")
@@ -239,7 +239,7 @@ const Stats = (navigation) => {
 							style={styles.rightButtonContainer}
 							onPress={() => {
 								if (points > 0) {
-									setMagic(prev => prev + 1)
+									setMagic(prev => prev + 2)
 									setPoints(prev => prev - 1)
 								} else {
 									return Alert.alert(null, "You have insufficient stat points!")
@@ -266,7 +266,7 @@ const Stats = (navigation) => {
 							style={styles.leftButtonContainer}
 							onPress={() => {
 								if (def > 0) {
-									setDef(prev => prev - 1)
+									setDef(prev => prev - 2)
 									setPoints(prev => prev + 1)
 								} else {
 									return Alert.alert(null, "Negative values are not allowed!")
@@ -285,7 +285,7 @@ const Stats = (navigation) => {
 							style={styles.rightButtonContainer}
 							onPress={() => {
 								if (points > 0) {
-									setDef(prev => prev + 1)
+									setDef(prev => prev + 2)
 									setPoints(prev => prev - 1)
 								} else {
 									return Alert.alert(null, "You have insufficient stat points!")
@@ -312,7 +312,7 @@ const Stats = (navigation) => {
 							style={styles.leftButtonContainer}
 							onPress={() => {
 								if (mr > 0) {
-									setMr(prev => prev - 1)
+									setMr(prev => prev - 2)
 									setPoints(prev => prev + 1)
 								} else {
 									return Alert.alert(null, "Negative values are not allowed!")
@@ -331,7 +331,7 @@ const Stats = (navigation) => {
 							style={styles.rightButtonContainer}
 							onPress={() => {
 								if (points > 0) {
-									setMr(prev => prev + 1)
+									setMr(prev => prev + 2)
 									setPoints(prev => prev - 1)
 								} else {
 									return Alert.alert(null, "You have insufficient stat points!")

@@ -22,6 +22,7 @@ import * as Database from "../api/db"
 import * as Authentication from "../api/auth"
 import { CommonActions } from "@react-navigation/native"
 import Battle from "../screens/Battle"
+import Result from "../screens/Result"
 
 const SettingsScreen = ({ navigation }) => {
 	return (
@@ -281,6 +282,7 @@ const DrawerNavigator = ({ route, navigation }) => {
 			<DrawerNav.Screen name="Running2" component={Running2} />
 			<DrawerNav.Screen name="Running3" component={Running3} />
 			<DrawerNav.Screen name="Battle" component={Battle} />
+			<DrawerNav.Screen name="Result" component={Result} />
 			<DrawerNav.Screen name="RunningLogs" component={RunningLogsScreen} />
 			<DrawerNav.Screen name="Leaderboard" component={LeaderboardScreen} />
 			<DrawerNav.Screen name="Friends" component={FriendsScreen} />

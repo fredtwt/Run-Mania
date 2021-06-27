@@ -13,7 +13,7 @@ import color from "../constants/color"
 
 const HomeScreen = ({ navigation }) => {
   return (
-    <MainStackScreen name="Home" component={Home} headerTitle="Home" backgroundColor={color.homeAccent} onPress={() => navigation.openDrawer()} />
+    <MainStackScreen name="Home" component={Home} headerTitle="Avatar" backgroundColor={color.homeAccent} onPress={() => navigation.openDrawer()} />
   )
 }
 

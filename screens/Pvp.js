@@ -35,8 +35,10 @@ const getAvatar = (gender, job) => {
 	}
 }
 
-const RequestContainer = (props) => {
+const HistoryContainer = (props) => {
 	const [overlayVisible, setOverlayVisible] = useState(false)
+	const game = props.game
+	const opponent = game.position == "player1" ? game.player2 : game.player1 
 
 	return (
 		<View>
@@ -51,36 +53,36 @@ const RequestContainer = (props) => {
 				<View style={styles.overlayBackground}>
 					<View style={{ flex: 1, flexDirection: "row", paddingTop: 20, paddingLeft: 20, paddingBottom: 10, width: "100%" }}>
 						<Image
-							source={getAvatar(props.gender, props.job)}
+							source={getAvatar(opponent.gender, opponent.job)}
 							style={styles.image}
 							PlaceholderContent={<ActivityIndicator size="large" />} />
 						<View style={{ flexDirection: "column", paddingLeft: 10, justifyContent: "center" }}>
-							<Text style={[styles.label, { fontWeight: "bold", alignSelf: "flex-start" }]}>{props.username}</Text>
-							<Text style={[styles.label, { fontSize: 18, alignSelf: "flex-start" }]}>Level: {props.level} </Text>
+							<Text style={[styles.label, { fontWeight: "bold", alignSelf: "flex-start" }]}>{opponent.username}</Text>
+							<Text style={[styles.label, { fontSize: 18, alignSelf: "flex-start" }]}>Level: {opponent.stats.level} </Text>
 						</View>
 					</View>
 					<View style={{ flex: 2, padding: 20, paddingTop: 0, width: "100%" }}>
-						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job class: {props.job}</Text>
+						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job class: {opponent.job}</Text>
 						<View style={{ flex: 1, flexDirection: "row", padding: 10, alignItems: "center", justifyContent: "space-between" }}>
 							<View>
 								<Text style={styles.statsHeader}>HP:</Text>
-								<Text style={styles.stats}>{props.hp}</Text>
+								<Text style={styles.stats}>{opponent.stats.hp}</Text>
 							</View>
 							<View>
 								<Text style={styles.statsHeader}>ATK:</Text>
-								<Text style={styles.stats}>{props.atk}</Text>
+								<Text style={styles.stats}>{opponent.stats.atk}</Text>
 							</View>
 							<View>
 								<Text style={styles.statsHeader}>MAGIC:</Text>
-								<Text style={styles.stats}>{props.magic}</Text>
+								<Text style={styles.stats}>{opponent.stats.magic}</Text>
 							</View>
 							<View>
 								<Text style={styles.statsHeader}>DEF:</Text>
-								<Text style={styles.stats}>{props.def}</Text>
+								<Text style={styles.stats}>{opponent.stats.def}</Text>
 							</View>
 							<View>
 								<Text style={styles.statsHeader}>MR:</Text>
-								<Text style={styles.stats}>{props.mr}</Text>
+								<Text style={styles.stats}>{opponent.stats.mr}</Text>
 							</View>
 						</View>
 						<View style={{ flex: 1, flexDirection: "row", marginTop: 5, alignItems: "center", justifyContent: "space-around" }}>
@@ -99,34 +101,28 @@ const RequestContainer = (props) => {
 			</Modal>
 			<TouchableOpacity onPress={() => setOverlayVisible(true)}>
 				<View style={styles.logContainer}>
+					<Text style={{
+						fontWeight: "bold",
+						fontSize: 20,
+						marginRight: 5
+					}}>VS</Text>
 					<Image
-						source={getAvatar(props.gender, props.job)}
+						source={getAvatar(opponent.gender, opponent.job)}
 						style={styles.listImage}
 						PlaceholderContent={<ActivityIndicator size="large" />} />
-					<View style={{ flex: 1, flexDirection: "column" }}>
-						<View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-start" }}>
-							<Text style={styles.listText}>{props.username}</Text>
-							<Text style={[styles.listText, { color: "#80E837" }]}>Lvl {props.level}</Text>
+					<View style={{ flex: 1, flexDirection: "row" }}>
+						<View style={{ flex: 2, flexDirection: "row", alignItems: "center", justifyContent: "flex-start" }}>
+							<Text style={styles.listText}>{opponent.username}</Text>
+							<Text style={[styles.listText, { color: "#80E837" }]}>Lvl {opponent.stats.level}</Text>
 						</View>
 						<View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-around", marginTop: 2 }}>
-							<ColorButton
-								title="Accept"
-								titleStyle={{
-									fontSize: 14
-								}}
-								height={35}
-								width={100}
-								backgroundColor="#358745"
-								onPress={props.accept} />
-							<ColorButton
-								title="Reject"
-								titleStyle={{
-									fontSize: 14
-								}}
-								height={35}
-								width={100}
-								backgroundColor="#D34F4F"
-								onPress={props.reject} />
+							<Text
+								style={{
+									fontSize: 25,
+									fontWeight: "bold",
+									textAlign: "center",
+									color: game.winner == opponent.username ? "red" : "#80E837"
+								}}>{game.winner == opponent.username ? "LOSE" : "WIN"}</Text>
 						</View>
 					</View>
 				</View>
@@ -204,7 +200,7 @@ const ArenaContainer = (props) => {
 						style={styles.listImage}
 						PlaceholderContent={<ActivityIndicator size="large" />} />
 					<View style={{ flex: 1, flexDirection: "row", padding: 10 }}>
-						<View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-start" }}>
+						<View style={{ flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "flex-start" }}>
 							<Text style={styles.listText}>{props.username}</Text>
 							<Text style={[styles.listText, { color: "#80E837" }]}>Lvl {props.level}</Text>
 						</View>
@@ -232,7 +228,7 @@ const Pvp = ({ navigation }) => {
 	const [userInfo, setUserInfo] = useState([])
 	const [opponent, setOpponent] = useState("")
 	const [roomId, setRoomId] = useState("")
-	const [requestsArray, setRequestsArray] = useState([])
+	const [historyArray, setHistoryArray] = useState([])
 	const [pvpArray, setPvpArray] = useState([])
 	const [isWaiting, setIsWaiting] = useState(false)
 	const [position, setPosition] = useState("")
@@ -384,6 +380,15 @@ const Pvp = ({ navigation }) => {
 			})
 		})
 
+		Database.userDetails(userId).get().then(user => {
+			if (mounted) {
+				setHistoryArray([])
+				user.child("matchHistory").forEach(game => {
+						setHistoryArray(prev => [game.val(), ...prev])
+				})
+			}
+		})
+		
 		return () => {
 			mounted = false
 		}
@@ -453,10 +458,7 @@ const Pvp = ({ navigation }) => {
 					textStyle={{
 						color: "white"
 					}} />
-				<View style={styles.headerContainer}>
-
-				</View>
-				<View style={{ flex: 0.2, alignSelf: "center", width: deviceWidth * 0.95, flexDirection: "row", borderRadius: 15, borderWidth: 4, backgroundColor: "rgba(35, 35, 35, 0.8)" }}>
+				<View style={{ alignSelf: "center", height: 50, width: deviceWidth * 0.95, flexDirection: "row", borderRadius: 15, borderWidth: 4, backgroundColor: "rgba(40, 40, 40, 0.8)" }}>
 					<TouchableOpacity
 						style={[styles.button]}
 						onPress={() => setIsArena(true)}>
@@ -476,7 +478,6 @@ const Pvp = ({ navigation }) => {
 				{
 					isArena
 						? <View style={styles.header}>
-							<Text style={styles.headerText}>Arena:</Text>
 							<View style={styles.resultsContainer}>
 								<FlatList
 									data={pvpArray}
@@ -500,25 +501,16 @@ const Pvp = ({ navigation }) => {
 							</View>
 						</View>
 						: <View style={styles.header}>
-							<Text style={styles.headerText}>Pvp log:</Text>
 							<View style={styles.resultsContainer}>
 								<FlatList
-									data={requestsArray}
+									data={historyArray}
 									keyExtractor={(item, index) => index.toString()}
 									renderItem={useMemo(() => ({ item }) => {
 										return (
-											<RequestContainer
-												gender={item.gender}
-												job={item.job}
-												atk={item.atk}
-												hp={item.hp}
-												def={item.def}
-												magic={item.magic}
-												mr={item.mr}
-												username={item.username}
-												level={item.level} />
+											<HistoryContainer
+												game={item} />
 										)
-									}, [requestsArray])
+									}, [historyArray])
 									} />
 							</View>
 						</View>
@@ -540,7 +532,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	requestContainer: {
-		flex: 2,
+		flex: 1,
+		padding: 25
 	},
 	text: {
 		fontSize: 30,
@@ -555,6 +548,7 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		color: "white",
+		fontWeight: "bold",
 		fontSize: 18
 	},
 	loadingOverlay: {
@@ -614,8 +608,8 @@ const styles = StyleSheet.create({
 	},
 	logContainer: {
 		flexDirection: "row",
-		height: 90,
-		width: "95%",
+		height: 85,
+		width: "90%",
 		alignSelf: "center",
 		borderWidth: 2,
 		borderColor: "black",

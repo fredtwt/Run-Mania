@@ -144,8 +144,8 @@ const Friends = () => {
 	const [requestsArray, setRequestsArray] = useState([])
 	const [loading, setLoading] = useState(false)
 
-	const acceptFriendRequest = (userId, friendId) => {
-		Database.acceptFriendRequest({ currentId: userId, friendId: friendId },
+	const acceptFriendRequest = async (userId, friendId) => {
+		await Database.acceptFriendRequest({ currentId: userId, friendId: friendId },
 			(friend) => {
 				var updateArr = []
 				requestsArray.forEach((request) => {
@@ -161,8 +161,8 @@ const Friends = () => {
 			})
 	}
 
-	const rejectFriendRequest = (userId, friendId) => {
-		Database.rejectFriendRequest({ currentId: userId, friendId: friendId },
+	const rejectFriendRequest = async (userId, friendId) => {
+		await Database.rejectFriendRequest({ currentId: userId, friendId: friendId },
 			(friend) => {
 				var updateArr = []
 				requestsArray.forEach((request) => {
@@ -188,6 +188,7 @@ const Friends = () => {
 					if (current.val().friend == false) {
 						Database.userDetails(current.val().uid).get().then(snapshot => {
 							setRequestsArray(prevData => [...prevData, {
+								gender: snapshot.val().gender,
 								uid: current.val().uid,
 								job: snapshot.val().job,
 								username: snapshot.val().username,

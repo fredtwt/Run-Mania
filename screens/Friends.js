@@ -159,6 +159,9 @@ const Friends = () => {
 		if (uid == "") {
 			setLoading(false)
 			return Alert.alert(null, "UID search field is empty!")
+		} else if (uid == user) {
+			setLoading(false)
+			return Alert.alert(null, "Your own personal UID is not allowed!")
 		}
 
 		Database.searchUser({ id: uid },

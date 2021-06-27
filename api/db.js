@@ -183,8 +183,8 @@ export const addStats = async ({userId, hp, atk, magic, def, mr, points}, onSucc
 export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 	try {
 		const game = db.ref("pvp/" + id ) 
-		const p1 = db.ref("pvp/" + id + "/" + player)
-		const p2 = db.ref("pvp/" + id + "/" + opponent)
+		const p1 = db.ref("pvp/" + id + "/player1")
+		const p2 = db.ref("pvp/" + id + "/player2")
 		const player1 = db.ref("users/" + player + "/currentMatch")
 		const player2 = db.ref("users/" + opponent + "/currentMatch")
 		var p1Username = ""
@@ -208,9 +208,14 @@ export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 		await game.set({
 			id: id,
 			gameStarted: false,
+			gameEnded: false,
+			winner: "",
+			turn: 1,
+			battleLog: "",
 		})
 
 		await p1.set({
+			id: player,
 			action: "",
 			ready: false,
 			username: p1Username,
@@ -220,6 +225,7 @@ export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 		})
 
 		await p2.set({
+			id: opponent,
 			action: "",
 			ready: false,
 			username: p2Username,
@@ -309,13 +315,39 @@ export const cancelGame = async ({ id, player, opponent }, onSuccess, onError) =
 	}
 }
 
-export const updateGameState = async (playerId, action, matchId) => {
-	const game = db.ref("pvp/" + matchId + "/" + playerId)
+export const endGame = async ({ id, user, winner, position }, onSuccess, onError) => {
+	try {
+		const game = db.ref("pvp/" + id)
+		const player = db.ref("users/" + user + "/currentMatch")
+		const playerHistory = db.ref("users/" + user + "/matchHistory/" + id)
 
-	await game.update({
-		action: action,
-		ready: true,
-	})
+		await player.set(null)
+		await game.update({
+			gameEnded: true,
+			winner: winner,
+			position: position
+		})
+		await game.get().then(result => {
+			playerHistory.set(result.val())	
+		})
+		return onSuccess()
+	}	catch (error) {
+	  return onError(error)
+	}
+}
+
+export const updateGameState = async ({playerId, action, matchId}, onSuccess, onError) => {
+	try {
+		const player = db.ref("pvp/" + matchId + "/" + playerId)
+
+		await player.update({
+			action: action,
+			ready: true,
+		})
+		return onSuccess()
+	} catch (error) {
+		return onError(error)
+	}
 }
 
 export const userDetails = (id) => {

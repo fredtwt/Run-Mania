@@ -98,7 +98,7 @@ const Home = () => {
 					borderColor="#fff" />
 			</View>
 			<View style={styles.statsContainer}>
-				<View style={{ flexDirection: "column", flex: 1, alignItems: "center", width: "100%" }}>
+				<View style={{ flexDirection: "column", flex: 1, alignItems: "flex-start", width: "100%", marginLeft: "10%"}}>
 					<Text style={styles.stats}>HP:
 						<Text style={styles.value}> {userStatsArr.hp}</Text>
 					</Text>
@@ -109,7 +109,7 @@ const Home = () => {
 						<Text style={styles.value}> {userStatsArr.magic}</Text>
 					</Text>
 				</View>
-				<View style={{ flex: 1, flexDirection: "column", alignItems: "center" }}>
+				<View style={{ flex: 1, flexDirection: "column", alignItems: "flex-start", width: "100%", marginLeft: "5%" }}>
 					<Text style={styles.stats}>DEF:
 						<Text style={styles.value}> {userStatsArr.def}</Text>
 					</Text>
