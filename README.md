@@ -1,9 +1,11 @@
+![Image alt text](./assets/logo.png)
+
 # Run-Mania
 A running app that generates a looping route for you based on the distance you set. 
 Compete and challenge with your friends as you level up through running! 
 
 ## Installation
-1. Install ExpoGo from App Store/Google Play (iOS users - take note of Pg 14)
+1. Install ExpoGo from App Store/Google Play (iOS users - take note of no background location tracking, see 'Tracking the run')
 1. With ExpoGo installed, click on this link [here](https://exp.host/@rubbercoin/runmania-app/index.exp?sdkVersion=41.0.0) 
 
 Alternatively, download and install the standalone APK [here](https://drive.google.com/file/d/1ipxg7uNAGBQUAwLQd4mb1Ii40OxmTahZ/view?usp=sharing).
