@@ -2,7 +2,7 @@ warrior: next attack ignores 40% target mr,
 reduce own def/mr by 20% for 1 turn (2 turn cd)
 
 mage: deal 100% dmg and heal for 50% of the dmg, 
-lose 20% magic for 1 turn (3 turn cd)
+lose 20% atk for 1 turn (3 turn cd)
 
 archer: next attack strikes twice (deals 200% dmg) 
-forfeit a turn(3 turn cd)
+and forfeits the next turn (3 turn cd)

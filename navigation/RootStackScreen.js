@@ -6,6 +6,10 @@ import Login from "../screens/Login"
 import Signup from "../screens/Signup"
 import DrawerNavigator from "./DrawerNavigator"
 import PasswordReset from "../screens/PasswordReset"
+import Battle from "../screens/Battle"
+import Result from "../screens/Result"
+import Running2 from "../screens/Running2"
+import Running3 from "../screens/Running3"
 
 const RootStackScreen = () => {
 
@@ -15,7 +19,11 @@ const RootStackScreen = () => {
     { name: "Login", component: Login },
     { name: "Signup", component: Signup },
     { name: "Main", component: DrawerNavigator },
-    { name: "Reset", component: PasswordReset }
+    { name: "Reset", component: PasswordReset },
+		{ name: "Battle", component: Battle },
+		{ name: "Result", component: Result }, 
+		{ name: "Running2", component: Running2 }, 
+		{ name: "Running3", component: Running3 }, 
   ]
 
   return (

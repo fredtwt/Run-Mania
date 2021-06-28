@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react"
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, Modal, Alert, Dimensions, Image } from "react-native"
+import { SafeAreaView, View, StyleSheet, TouchableOpacity, Text, FlatList, Modal, Alert, Dimensions, Image } from "react-native"
 import { Overlay } from "react-native-elements"
 import { BlurView } from 'expo-blur'; //expo install expo-blur
 import { ActivityIndicator, ProgressBar } from "react-native-paper"
@@ -20,8 +20,8 @@ const Battle = ({ route, navigation }) => {
 	const gameId = route.params.game.id
 	const [player1, setPlayer1] = useState(route.params.game.player1)
 	const [player2, setPlayer2] = useState(route.params.game.player2)
-	const p1MaxHp = route.params.game.player1.stats.hp
-	const p2MaxHp = route.params.game.player2.stats.hp
+	const p1MaxHp = route.params.game.player1.maxHp
+	const p2MaxHp = route.params.game.player2.maxHp
 	const player = route.params.game.player1.id == userId ? "player1" : "player2"
 	const [p1Hp, setP1Hp] = useState(1)
 	const [p2Hp, setP2Hp] = useState(1)
@@ -29,7 +29,11 @@ const Battle = ({ route, navigation }) => {
 	const [skillCd, setSkillCd] = useState(false)
 	const [cdAmt, setCdAmt] = useState(0)
 	const [forfeitTurn, setForfeitTurn] = useState(false)
+	const [penaltyCd, setPenaltyCd] = useState(0)
+	const [penaltyAmt, setPenaltyAmt] = useState(0)
+	const [penaltyType, setPenaltyType] = useState("")
 	const [battleLog, setBattleLog] = useState([])
+	const [game, setGame] = useState(Object)
 
 	const getAvatar = (gender, job) => {
 		if (gender == "Male") {
@@ -69,7 +73,7 @@ const Battle = ({ route, navigation }) => {
 		}
 	}
 
-	const matchOver = async (player, winner, position) => {
+	const matchOver = async (player, winner, position, dialog) => {
 		await Database.endGame({
 			id: gameId,
 			user: player,
@@ -77,46 +81,103 @@ const Battle = ({ route, navigation }) => {
 			position: position
 		},
 			() => {
-				navigation.dispatch(CommonActions.reset({
-					index: 0,
-					routes: [{
-						name: "Result",
-						params: {
-						}
-					}]
-				}))
 			},
 			(error) => console.log(error))
+		navigation.dispatch(CommonActions.reset({
+			index: 0,
+			routes: [{
+				name: "Result",
+				params: {
+					game: gameId
+				}
+			}]
+		}))
 	}
 
 	const currentState = Database.game(gameId)
 
-	const useSkill = async (turn, job, magic, player, playerDetails, target, targetDetails) => {
+	const useSkill = async (turn, job, magic, player, playerDetails, target, targetDetails, defend) => {
 		setSkillCd(true)
 		if (job == "Archer") {
-			setCdAmt(2)
+			setCdAmt(3)
 			setForfeitTurn(true)
 			let dmg = magic * 2 - targetDetails.stats.mr
-			let newHp = targetDetails.stats.hp - dmg < 0 ? 0 : targetDetails.stats.hp - dmg
+			let negatedDmg = Math.round(dmg * 0.1)
+			const newHp = () => {
+				if (defend) {
+					return targetDetails.stats.hp - negatedDmg < 0 ? 0 : targetDetails.stats.hp - negatedDmg
+				} else {
+					return targetDetails.stats.hp - dmg < 0 ? 0 : targetDetails.stats.hp - dmg
+				}
+			}
 			let dialog = {
 				text: "Turn " + turn + ": " + playerDetails.username + " used Twin Shot, dealing " + dmg + " damage"
 			}
-
 			await currentState.child(target + "/stats").update({
-				hp: newHp
+				hp: newHp()
 			})
 			await currentState.child("battleLog").push(dialog)
-
 			await currentState.child(player).update({
 				action: "nothing",
 				ready: true
 			})
 		} else if (job == "Mage") {
 			setCdAmt(3)
+			setPenaltyCd(1)
+			setPenaltyType("atk")
+			let healAmt = magic * 0.5
+			const dmg = () => {
+				if (defend) {
+					return Math.round((magic - targetDetails.stats.mr) * 0.1)
+				} else {
+					return magic - targetDetails.stats.mr
+				}
+			}
+			let penalty = Math.round(playerDetails.stats.atk * 0.2)
+			let playerNewHp = playerDetails.stats.hp + healAmt > playerDetails.stats.maxHp ? playerDetails.stats.maxHp : playerDetails.stats.hp + healAmt
+			let targetNewHp = targetDetails.stats.hp - dmg() < 0 ? 0 : targetDetails.stats.hp - dmg()
 
-		} else {
+			setPenaltyAmt(penalty)
+			await currentState.child(target + "/stats").update({
+				hp: targetNewHp
+			})
+
+			await currentState.child(player + "/stats").update({
+				hp: playerNewHp,
+				atk: playerDetails.stats.atk - penalty
+			})
+
+			let dialog = {
+				text: "Turn " + turn + ": " + playerDetails.username + " used Siphon Life, dealing " + dmg() + " damage"
+			}
+			await currentState.child("battleLog").push(dialog)
+		} else if (job == "Warrior") {
 			setCdAmt(2)
+			setPenaltyCd(1)
+			setPenaltyType("def")
 
+			const dmg = () => {
+				let amt = magic - (targetDetails.stats.mr * 0.6)
+				if (defend) {
+					return amt * 0.1
+				} else {
+					return amt
+				}
+			}
+			let penalty = Math.round(playerDetails.stats.def * 0.2)
+			let targetNewHp = targetDetails.stats.hp - dmg() < 0 ? 0 : targetDetails.stats.hp - dmg()
+
+			setPenaltyAmt(penalty)
+			await currentState.child(target + "/stats").update({
+				hp: targetNewHp
+			})
+			await currentState.child(player + "/stats").update({
+				def: playerDetails.stats.def - penalty
+			})
+			let dialog = {
+				text: "Turn " + turn + ": " + playerDetails.username + " used Double-Edged, dealing " + dmg() + " damage"
+			}
+			await currentState.child("battleLog").push(dialog)
 		}
 	}
 
@@ -129,14 +190,31 @@ const Battle = ({ route, navigation }) => {
 		let dialog
 		setForfeitTurn(false)
 
-		if (cdAmt > 0) {
-			setCdAmt(prev => prev - 1)
-		}
-
 		await currentState.child(player).update({
 			action: "",
 			ready: false,
 		})
+
+		if (cdAmt > 0) {
+			console.log("cdAmt: " + cdAmt)
+			setCdAmt(prev => prev - 1)
+		}
+
+		if (penaltyCd > 0) {
+			console.log("penaltyAmt: " + penaltyAmt)
+			setPenaltyCd(prev => prev - 1)
+		} else if (penaltyCd == 0 && penaltyAmt > 0) {
+			if (penaltyType == "atk") {
+				await currentState.child(player + "/stats").update({
+					atk: currentPlayer.stats.atk + penaltyAmt
+				})
+			} else if (penaltyType == "def") {
+				await currentState.child(player + "/stats").update({
+					def: currentPlayer.stats.def + penaltyAmt
+				})
+			}
+			setPenaltyAmt(0)
+		}
 
 		if (p1.action == "attack") {
 			if (p2.action == "attack") {
@@ -152,9 +230,9 @@ const Battle = ({ route, navigation }) => {
 				await currentState.child("battleLog").push(dialog)
 			} else if (p2.action == "skill") {
 				if (player == "player2") {
-					useSkill(turn, p2.job, p2.stats.magic, "player2", p2, "player1", p1)
+					useSkill(turn, p2.job, p2.stats.magic, "player2", p2, "player1", p1, false)
 				} else {
-					let p2DmgTaken = calcDmgTaken(p1.stats.atk, p2.stats.def) 
+					let p2DmgTaken = calcDmgTaken(p1.stats.atk, p2.stats.def)
 					let p2NewHp = p2.stats.hp - p2DmgTaken
 					dialog = {
 						text: "Turn " + turn + ": " + p1.username + " attacked " + p2.username + " for " + p2DmgTaken + " damage"
@@ -185,8 +263,7 @@ const Battle = ({ route, navigation }) => {
 					text: p2.username + " surrendered. " + p1.username + " wins!"
 				}
 				setIsActionDone(false)
-				matchOver(userId, player1.username, player)
-				return Alert.alert("MATCH OVER", dialog.text)
+				matchOver(userId, player1.username, player, dialog.text)
 			} else if (p2.action == "nothing") {
 				let p2DmgTaken = calcDmgTaken(p1.stats.atk, p2.stats.def)
 				let p2NewHp = p2.stats.hp - p2DmgTaken
@@ -207,24 +284,48 @@ const Battle = ({ route, navigation }) => {
 		} else if (p1.action == "skill") {
 			if (p2.action == "attack") {
 				if (player == "player1") {
-
+					useSkill(turn, p1.job, p1.stats.magic, "player1", p1, "player2", p2, false)
 				} else {
-
+					let dmg = calcDmgTaken(p2.stats.atk, p2.stats.def)
+					let newHp = p2.stats.hp - dmg
+					dialog = {
+						text: "Turn " + turn + ": " + p2.username + " attacked " + p1.username + " for " + dmg + " damage"
+					}
+					await currentState.child("player1/stats").update({
+						hp: newHp < 0 ? 0 : newHp
+					})
+					await currentState.child("battleLog").push(dialog)
 				}
-
 			} else if (p2.action == "skill") {
-
+				if (player == "player1") {
+					useSkill(turn, p1.job, p1.stats.magic, "player1", p1, "player2", p2, false)
+				} else {
+					useSkill(turn, p2.job, p2.stats.magic, "player2", p2, "player1", p1, false)
+				}
 			} else if (p2.action == "defend") {
-
+				if (player == "player1") {
+					useSkill(turn, p1.job, p1.stats.magic, "player1", p1, "player2", p2, true)
+				} else {
+					dialog = {
+						text: "Turn " + turn + ": " + p2.username + " defended"
+					}
+					await currentState.child("battleLog").push(dialog)
+				}
 			} else if (p2.action == "surrender") {
 				dialog = {
 					text: p2.username + " surrendered. " + p1.username + " wins!"
 				}
 				setIsActionDone(false)
-				matchOver(userId, player1.username, player)
-				return Alert.alert("MATCH OVER", dialog.text)
+				matchOver(userId, player1.username, player, dialog.text)
 			} else if (p2.action == "nothing") {
-
+				if (player == "player1") {
+					useSkill(turn, p1.job, p1.stats.magic, "player1", p1, "player2", p2, true)
+				} else {
+					dialog = {
+						text: "Turn " + turn + ": " + p2.username + " forfeited a turn"
+					}
+					await currentState.child("battleLog").push(dialog)
+				}
 			}
 		} else if (p1.action == "defend") {
 			if (p2.action == "attack") {
@@ -244,7 +345,14 @@ const Battle = ({ route, navigation }) => {
 				})
 				await currentState.child("battleLog").push(dialog)
 			} else if (p2.action == "skill") {
-
+				if (player == "player2") {
+					useSkill(turn, p2.job, p2.stats.magic, "player2", p2, "player1", p1, true)
+				} else {
+					dialog = {
+						text: "Turn " + turn + ": " + p1.username + " defended"
+					}
+					await currentState.child("battleLog").push(dialog)
+				}
 			} else if (p2.action == "defend") {
 				dialog = {
 					text: "Turn " + turn + ": " + currentPlayer.username + " defended"
@@ -255,8 +363,7 @@ const Battle = ({ route, navigation }) => {
 					text: p2.username + " surrendered. " + p1.username + " wins!"
 				}
 				setIsActionDone(false)
-				matchOver(userId, player1.username, player)
-				return Alert.alert("MATCH OVER", dialog.text)
+				matchOver(userId, player1.username, player, dialog.text)
 			} else if (p2.action == "nothing") {
 				if (player == "player1") {
 					dialog = {
@@ -265,17 +372,24 @@ const Battle = ({ route, navigation }) => {
 				} else {
 					dialog = {
 						text: "Turn " + turn + ": " + p2.username + " forfeited a turn"
-					}	
+					}
 				}
 				await currentState.child("battleLog").push(dialog)
 			}
 		} else if (p1.action == "surrender") {
-			dialog = {
-				text: p1.username + " surrendered. " + p2.username + " wins!"
+			if (p2.action == "surrender") {
+				dialog = {
+					text: currentPlayer.username + " and " + otherPlayer.username + " surrendered!"
+				}
+				setIsActionDone(false)
+				matchOver(userId, "", player, dialog.text)
+			} else {
+				dialog = {
+					text: p1.username + " surrendered. " + p2.username + " wins!"
+				}
+				setIsActionDone(false)
+				matchOver(userId, player2.username, player, dialog.text)
 			}
-			setIsActionDone(false)
-			matchOver(userId, player2.username, player)
-			return Alert.alert("MATCH OVER", dialog.text)
 		} else if (p1.action == "nothing") {
 			if (p2.action == "attack") {
 				if (player == "player2") {
@@ -295,7 +409,14 @@ const Battle = ({ route, navigation }) => {
 				}
 				await currentState.child("battleLog").push(dialog)
 			} else if (p2.action == "skill") {
-
+				if (player == "player2") {
+					useSkill(turn, p2.job, p2.stats.magic, "player2", p2, "player1", p1, true)
+				} else {
+					dialog = {
+						text: "Turn " + turn + ": " + currentPlayer.username + " forfeited a turn"
+					}
+				}
+				await currentState.child("battleLog").push(dialog)
 			} else if (p2.action == "defend") {
 				if (player == "player2") {
 					dialog = {
@@ -312,8 +433,7 @@ const Battle = ({ route, navigation }) => {
 					text: p2.username + " surrendered. " + p1.username + " wins!"
 				}
 				setIsActionDone(false)
-				matchOver(userId, player1.username, player)
-				return Alert.alert("MATCH OVER", dialog.text)
+				matchOver(userId, player1.username, player, dialog.text)
 			}
 		}
 		await currentState.update({
@@ -342,12 +462,22 @@ const Battle = ({ route, navigation }) => {
 				setPlayer2(p2)
 				setP1Hp(p1.stats.hp / p1MaxHp)
 				setP2Hp(p2.stats.hp / p2MaxHp)
+				setGame(snapshot.val())
 				if (p1.stats.hp > 0 && p2.stats.hp > 0) {
 					if (p1.ready && p2.ready) {
 						triggerAction(snapshot.val())
 					}
 				} else {
-					p1.stats.hp == 0 ? matchOver(userId, p2.username, player) : matchOver(userId, p1.username, player)
+					if (p1.stats.hp == 0 && p2.stats.hp == 0) {
+						let dialog = p1.username + " and " + p2.username + " surrendered!"
+						matchOver(userId, "", player, dialog)
+					} else if (p1.stats.hp == 0) {
+						let dialog = p1.username + " has been wiped out and " + p2.username + " is the winner!"
+						matchOver(userId, p2.username, player, dialog)
+					} else {
+						let dialog = p2.username + " has been wiped out and " + p1.username + " is the winner!"
+						matchOver(userId, p1.username, player, dialog)
+					}
 				}
 			}
 		})
@@ -355,11 +485,10 @@ const Battle = ({ route, navigation }) => {
 		return () => {
 			mounted = false
 		}
-	}, [])
-			console.log(cdAmt)
+	}, [cdAmt])
 
 	return (
-		<View style={styles.container}>
+		<SafeAreaView style={styles.container}>
 			<Spinner
 				visible={isActionDone || forfeitTurn}
 				animation="fade"
@@ -472,7 +601,7 @@ const Battle = ({ route, navigation }) => {
 					</View>
 				</TouchableOpacity>
 			</View>
-		</View>
+		</SafeAreaView>
 	)
 }
 

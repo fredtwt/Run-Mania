@@ -62,7 +62,7 @@ const HistoryContainer = (props) => {
 						</View>
 					</View>
 					<View style={{ flex: 2, padding: 20, paddingTop: 0, width: "100%" }}>
-						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job class: {opponent.job}</Text>
+						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job: {opponent.job}</Text>
 						<View style={{ flex: 1, flexDirection: "row", padding: 10, alignItems: "center", justifyContent: "space-between" }}>
 							<View>
 								<Text style={styles.statsHeader}>HP:</Text>
@@ -121,8 +121,8 @@ const HistoryContainer = (props) => {
 									fontSize: 25,
 									fontWeight: "bold",
 									textAlign: "center",
-									color: game.winner == opponent.username ? "red" : "#80E837"
-								}}>{game.winner == opponent.username ? "LOSE" : "WIN"}</Text>
+									color: game.winner == opponent.username ? "red" : game.winner == "" ? "yellow" : "#80E837"
+								}}>{game.winner == opponent.username ? "LOSE" : game.winner == "" ? "DRAW" : "WIN"}</Text>
 						</View>
 					</View>
 				</View>
@@ -156,7 +156,7 @@ const ArenaContainer = (props) => {
 						</View>
 					</View>
 					<View style={{ flex: 2, padding: 20, paddingTop: 0, width: "100%" }}>
-						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job class: {props.job}</Text>
+						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job: {props.job}</Text>
 						<View style={{ flex: 1, flexDirection: "row", padding: 10, alignItems: "center", justifyContent: "space-between" }}>
 							<View>
 								<Text style={styles.statsHeader}>HP:</Text>
@@ -210,7 +210,7 @@ const ArenaContainer = (props) => {
 								titleStyle={{
 									fontSize: 14
 								}}
-								height={35}
+								height={40}
 								width={100}
 								backgroundColor="#358745"
 								onPress={props.challenge} />
@@ -233,12 +233,13 @@ const Pvp = ({ navigation }) => {
 	const [isWaiting, setIsWaiting] = useState(false)
 	const [position, setPosition] = useState("")
 	const [p1Username, setP1Username] = useState("")
+	const [p1Level, setP1Level] = useState(0)
 	const [p2Username, setP2Username] = useState("")
 	const [loading, setLoading] = useState(false)
 	const [game, setGame] = useState({
 		gameStarted: false,
-		player1: "",
-		position: ""
+		p1Gender: "",
+		p1Job: "",
 	})
 
 	const pvpRequest = (opponent) => {
@@ -337,7 +338,9 @@ const Pvp = ({ navigation }) => {
 			if (mounted) {
 				if (snapshot.val() != null) {
 					setPosition(checkPosition(snapshot.val()))
+					setGame(snapshot.val())
 					setP1Username(snapshot.val().p1Username)
+					setP1Level(snapshot.child("p1Stats").val().level)
 					setP2Username(snapshot.val().p2Username)
 					checkWaiting(snapshot.val())
 					Database.db.ref("pvp/" + snapshot.val().id).get().then(game => {
@@ -404,12 +407,12 @@ const Pvp = ({ navigation }) => {
 						overlayStyle={styles.loadingOverlay}>
 						<View>
 							<ActivityIndicator size="large" color="#4AAA5B" style={styles.loading} />
-							<View style={{ alignItems: "center", justifyContent: "center" }}>
-								<Text style={{
-									margin: 10,
-									color: "white",
-									fontSize: 20,
-								}}>Waiting for opponent</Text>
+							<Text style={{
+								margin: 10,
+								color: "white",
+								fontSize: 20,
+							}}>Waiting for opponent</Text>
+							<View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
 								<ColorButton
 									title="Cancel"
 									backgroundColor="red"
@@ -430,21 +433,29 @@ const Pvp = ({ navigation }) => {
 									marginTop: 5,
 									marginBottom: 10,
 									color: "white",
+									fontWeight: "bold",
 									fontSize: 20,
-								}}>PVP request from {p1Username}</Text>
+								}}>PVP request from</Text>
+							</View>
+							<View style={{ flex: 1, flexDirection: "row", justifyContent: "center" }}>
+								<Image
+									source={getAvatar(game.p1Gender, game.p1Job)}
+									style={styles.overlayImage}
+									PlaceholderContent={<ActivityIndicator size="large" />} />
+									<Text style={{ marginLeft: 10, alignSelf: "center", color: "white", fontSize: 20}}>{p1Username} - Lvl {p1Level}</Text>
 							</View>
 							<View style={{ flex: 1, flexDirection: "row", width: 300, justifyContent: "space-evenly", marginTop: 10 }}>
 								<ColorButton
 									title="Accept"
 									backgroundColor="green"
 									onPress={() => acceptRequest()}
-									height={35}
+									height={45}
 									width={90} />
 								<ColorButton
 									title="Reject"
 									backgroundColor="red"
 									onPress={() => rejectRequest()}
-									height={35}
+									height={45}
 									width={90} />
 							</View>
 						</View>
@@ -552,7 +563,7 @@ const styles = StyleSheet.create({
 		fontSize: 18
 	},
 	loadingOverlay: {
-		height: 200,
+		height: 250,
 		width: 300,
 		alignItems: "center",
 		justifyContent: "center",
@@ -560,6 +571,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 	},
 	loading: {
+		flex: 1,
 		justifyContent: "center",
 		margin: 20
 	},
@@ -657,6 +669,13 @@ const styles = StyleSheet.create({
 		height: 80,
 		borderRadius: 80 / 2,
 		borderWidth: 3,
+		borderColor: "black"
+	},
+	overlayImage: {
+		width: 50,
+		height: 50,
+		borderRadius: 50 / 2,
+		borderWidth: 2,
 		borderColor: "black"
 	},
 	listImage: {

@@ -220,7 +220,6 @@ const DrawerNavigator = ({ route, navigation }) => {
 	const [statsExp, setStatsExp] = useState("")
 	const [numberOfRuns, setNumberOfRuns] = useState(0)
 	const userId = Authentication.getCurrentUserId()
-	const user = route.params.user
 
 	useEffect(() => {
 		let mounted = true
@@ -254,7 +253,7 @@ const DrawerNavigator = ({ route, navigation }) => {
 	const handleLogout = () => {
 		Authentication.signOut(
 			() => {
-				Database.logout(user)
+				Database.logout(userId)
 				navigation.dispatch(CommonActions.reset({
 					index: 0,
 					routes: [{
@@ -273,16 +272,12 @@ const DrawerNavigator = ({ route, navigation }) => {
 		<DrawerNav.Navigator drawerContent={
 			props => <DrawerContent {...props}
 				onPress={handleLogout}
-				user={user}
+				user={userId}
 				numberOfRuns={numberOfRuns}
 				username={username}
 				level={level}
 				statsExp={(level * 2 * 1000) - statsExp} />}>
 			<DrawerNav.Screen name="Main" component={HomeScreen} />
-			<DrawerNav.Screen name="Running2" component={Running2} />
-			<DrawerNav.Screen name="Running3" component={Running3} />
-			<DrawerNav.Screen name="Battle" component={Battle} />
-			<DrawerNav.Screen name="Result" component={Result} />
 			<DrawerNav.Screen name="RunningLogs" component={RunningLogsScreen} />
 			<DrawerNav.Screen name="Leaderboard" component={LeaderboardScreen} />
 			<DrawerNav.Screen name="Friends" component={FriendsScreen} />

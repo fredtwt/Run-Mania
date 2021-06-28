@@ -63,7 +63,7 @@ const FriendContainer = (props) => {
 					</View>
 					<View style={{ flex: 2, padding: 20, paddingTop: 0, width: "100%" }}>
 						<Text style={[styles.label, { alignSelf: "flex-start", marginBottom: 5 }]}>Total distance ran: {formatDistance(props.distance)}</Text>
-						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job class: {props.job}</Text>
+						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job: {props.job}</Text>
 						<View style={{ flex: 1, flexDirection: "row", padding: 10, alignItems: "center", justifyContent: "space-between" }}>
 							<View>
 								<Text style={styles.statsHeader}>HP:</Text>
@@ -289,7 +289,7 @@ const Friends = () => {
 					</View>
 					<View style={{ flex: 2, padding: 20, paddingTop: 0, width: "100%" }}>
 						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Total distance ran: {formatDistance(searchFriend.runningLogs.totalDistanceRan)}</Text>
-						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job class: {searchFriend.job}</Text>
+						<Text style={[styles.label, { alignSelf: "flex-start" }]}>Job: {searchFriend.job}</Text>
 						<View style={{ flex: 1, flexDirection: "row", padding: 10, alignItems: "center", justifyContent: "space-between" }}>
 							<View>
 								<Text style={styles.statsHeader}>HP:</Text>

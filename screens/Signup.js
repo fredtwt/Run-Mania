@@ -198,7 +198,7 @@ const Signup = ({ navigation }) => {
 							setValue={setGenderValue}
 							setItems={setGender} />
 						<DropDownPicker
-							placeholder="Select your avatar's job class"
+							placeholder="Select your avatar's job"
 							containerStyle={{
 								marginLeft: 5,
 								marginTop: 20,

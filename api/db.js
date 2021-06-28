@@ -220,6 +220,7 @@ export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 			ready: false,
 			username: p1Username,
 			stats: p1Stats,
+			maxHp: p1Stats.hp,
 			job: p1Job,
 			gender: p1Gender	
 		})
@@ -230,6 +231,7 @@ export const newGame = async ({ id, player, opponent }, onSuccess, onError) => {
 			ready: false,
 			username: p2Username,
 			stats: p2Stats,
+			maxHp: p2Stats.hp,
 			job: p2Job,
 			gender: p2Gender	
 		})
