@@ -342,7 +342,7 @@ const Friends = () => {
 				<View style={{ flex: 2, flexDirection: "row", marginBottom: 10 }}>
 					<SearchBar
 						placeholder="Enter a UID here"
-						platform="android"
+						platform="ios"
 						onChangeText={(text) => setSearch(text)}
 						containerStyle={styles.inputText}
 						value={search} />

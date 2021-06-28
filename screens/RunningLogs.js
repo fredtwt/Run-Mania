@@ -13,15 +13,14 @@ import { TouchableOpacity } from "react-native"
 const deviceHeight = Dimensions.get("window").height
 
 const zoom = (distance) => {
-	const newDistance = distance / 1000
-	if (newDistance < 2) {
-		return 17.5
-	} else if (newDistance < 5) {
-		return 16
-	} else if (newDistance < 10) {
+	if (distance < 1) {
+		return 16 
+	} else if (distance < 5) {
 		return 15
-	} else {
+	} else if (distance < 10) {
 		return 14
+	} else {
+		return 13
 	}
 }
 const getRegionForCoordinates = (points) => {

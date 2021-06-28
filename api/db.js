@@ -14,11 +14,11 @@ const newUser = (username, email, gender, height, weight, job, avatar) => ({
     level: 1,
 		points: 0,
     exp: 0,
-    hp: 100,
-    atk: 10,
-    magic: 10,
-    def: 10,
-    mr: 10
+    hp: job == "Warrior" ? 250 : 200,
+    atk: job == "Archer" ? 60 : 30,
+    magic: job == "Mage" ? 60 : 30,
+    def: job == "Warrior" ? 20 : 10,
+    mr: job == "Warrior" ? 20 : 10
   },
   runningLogs: {
     numberOfRuns: 0,
@@ -138,20 +138,30 @@ export const addExperience = async ({userId, distance}, onSuccess, onError) => {
   try {
     const stats = db.ref("users/" + userId + "/statistics")
     const points = (await stats.child("points").get()).val()
-    const level = (await stats.child("level").get()).val()
-    const levelExp = level * 2 * 1000 // in meters
-    const currentExp = (await stats.child("exp").get()).val() + distance
+    let level = (await stats.child("level").get()).val()
+    let levelExp = level * 2 * 1000 // in meters
+    let currentExp = (await stats.child("exp").get()).val() + distance
 
-    if (currentExp >= levelExp) {
-			var newLevel = currentExp % levelExp
-			var newExp = currentExp - (newLevel * levelExp)
+    if (currentExp > levelExp) {
+			while (currentExp > levelExp) {
+				currentExp = currentExp - levelExp
+				level = level + 1
+				levelExp = level * 2000
+			}
+			await stats.update({
+				level : level,
+				exp: currentExp,
+				points: points + 10 * (level - 1)
+			})
+			return onSuccess(level * 2000, currentExp)
+    } else if (currentExp == levelExp) {
       await stats.update({
-        level: level + newLevel,
-        exp: newExp,
+        level: level + 1,
+        exp: 0,
 				points: points + 10, 
       })
-      return onSuccess(levelExp, currentExp - levelExp)
-    } else {
+			return onSuccess((level + newLevel) * 2000, 0)
+		} else {
       await stats.update({
         exp: currentExp
       })

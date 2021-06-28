@@ -21,7 +21,7 @@ const Running3 = ({ route, navigation }) => {
 
   const zoom = (distance) => {
     if (distance < 2) {
-      return 17.5
+      return 17
     } else if (distance < 5) {
       return 16
     } else if (distance < 10) {

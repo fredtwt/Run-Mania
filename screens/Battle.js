@@ -125,7 +125,6 @@ const Battle = ({ route, navigation }) => {
 			setCdAmt(3)
 			setPenaltyCd(1)
 			setPenaltyType("atk")
-			let healAmt = magic * 0.5
 			const dmg = () => {
 				if (defend) {
 					return Math.round((magic - targetDetails.stats.mr) * 0.1)
@@ -133,8 +132,9 @@ const Battle = ({ route, navigation }) => {
 					return magic - targetDetails.stats.mr
 				}
 			}
+			let healAmt = dmg() / 2 
 			let penalty = Math.round(playerDetails.stats.atk * 0.2)
-			let playerNewHp = playerDetails.stats.hp + healAmt > playerDetails.stats.maxHp ? playerDetails.stats.maxHp : playerDetails.stats.hp + healAmt
+			let playerNewHp = playerDetails.stats.hp + healAmt >= playerDetails.maxHp ? playerDetails.maxHp : playerDetails.stats.hp + healAmt
 			let targetNewHp = targetDetails.stats.hp - dmg() < 0 ? 0 : targetDetails.stats.hp - dmg()
 
 			setPenaltyAmt(penalty)
@@ -157,11 +157,10 @@ const Battle = ({ route, navigation }) => {
 			setPenaltyType("def")
 
 			const dmg = () => {
-				let amt = magic - (targetDetails.stats.mr * 0.6)
 				if (defend) {
-					return amt * 0.1
+					return Math.round(magic * 0.1)
 				} else {
-					return amt
+					return magic 
 				}
 			}
 			let penalty = Math.round(playerDetails.stats.def * 0.2)
@@ -200,10 +199,12 @@ const Battle = ({ route, navigation }) => {
 			setCdAmt(prev => prev - 1)
 		}
 
-		if (penaltyCd > 0) {
+		if (penaltyCd > 1) {
 			console.log("penaltyAmt: " + penaltyAmt)
+			console.log(penaltyType)
 			setPenaltyCd(prev => prev - 1)
-		} else if (penaltyCd == 0 && penaltyAmt > 0) {
+		} else if (penaltyCd == 1 && penaltyAmt > 0) {
+			console.log("penaltyCd: " + penaltyCd)
 			if (penaltyType == "atk") {
 				await currentState.child(player + "/stats").update({
 					atk: currentPlayer.stats.atk + penaltyAmt
@@ -297,11 +298,7 @@ const Battle = ({ route, navigation }) => {
 					await currentState.child("battleLog").push(dialog)
 				}
 			} else if (p2.action == "skill") {
-				if (player == "player1") {
-					useSkill(turn, p1.job, p1.stats.magic, "player1", p1, "player2", p2, false)
-				} else {
-					useSkill(turn, p2.job, p2.stats.magic, "player2", p2, "player1", p1, false)
-				}
+				useSkill(turn, currentPlayer.job, currentPlayer.stats.magic, player, currentPlayer, player == "player1" ? "player2" : "player1", otherPlayer, false)
 			} else if (p2.action == "defend") {
 				if (player == "player1") {
 					useSkill(turn, p1.job, p1.stats.magic, "player1", p1, "player2", p2, true)
